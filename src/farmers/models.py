@@ -5,23 +5,10 @@ from django.db import models
 from market.models import Commodity, Market
 
 
-class FarmersCooperative(models.Model):
-    name = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    registeration_date = models.DateField(auto_now_add=True)
-    registration_number = models.CharField(max_length=255)
-    verification_status = models.BooleanField(default=False)
-    number_of_members = models.SmallIntegerField(default=0)
-
-    def __str__(self):
-        return self.name
-
-
 class PersonalInfo(models.Model):
     class IdentificationType(models.TextChoices):
-        NATIONAL_ID = "NID", "National ID"
-        PASSPORT = "PAS", "Passport"
+        NATIONAL_ID = "ND", "National ID"
+        PASSPORT = "IP", "International Passport"
         DRIVER_LICENSE = "DL", "Driver's License"
 
     class Gender(models.TextChoices):
@@ -45,7 +32,7 @@ class PersonalInfo(models.Model):
     verification_status = models.BooleanField(default=False)
 
     means_of_identification = models.CharField(
-        max_length=3,
+        max_length=2,
         choices=IdentificationType.choices,
         default=IdentificationType.NATIONAL_ID,
     )
@@ -72,6 +59,20 @@ class PersonalInfo(models.Model):
 
     def __str__(self):
         return self.first_name + " " + self.last_name
+
+
+class FarmersCooperative(models.Model):
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    registeration_date = models.DateField(auto_now_add=True)
+    registration_number = models.CharField(max_length=255)
+    verification_status = models.BooleanField(default=False)
+    number_of_members = models.SmallIntegerField(default=0)
+    blacklisted = models.BooleanField(default=False)  # Can be appealed
+
+    def __str__(self):
+        return self.name
 
 
 class FieldExtensionOfficer(PersonalInfo):
@@ -106,6 +107,7 @@ class Farmer(PersonalInfo):
 
     farmsize = models.DecimalField(max_digits=10, decimal_places=2)
     points = models.PositiveSmallIntegerField(default=0)
+    blacklisted = models.BooleanField(default=False)  # Can be appealed
     updated_at = models.DateTimeField(auto_now=True)
     category_type = models.CharField(
         max_length=3,
@@ -153,7 +155,10 @@ class Farmer(PersonalInfo):
         pass
 
 
-class SaleTransaction(models.Model):
+class FarmersMarketTransaction(models.Model):
+    # Basket of Vegetables
+    # Bag of grains
+    # Tubers
     farmer = models.ForeignKey(Farmer, on_delete=models.PROTECT)
     market = models.ForeignKey(Market, on_delete=models.PROTECT)
     produce = models.ForeignKey(Commodity, on_delete=models.PROTECT)
@@ -161,45 +166,8 @@ class SaleTransaction(models.Model):
     transaction_date = models.DateField(auto_now_add=True)
     points_earned = models.PositiveSmallIntegerField()
 
-    # calclate points earned by the quantity reported sold
-    def update_point_earned(self):
-        pass
-
-
-class SubsidyProgram(models.Model):
-
-    class Sponsor(models.TextChoices):
-        STATE = "M", "State Government"
-        FEDERAL = "F", "Federal Government"
-        NGO = "N", "Non Governmental Organization"
-
-    title = models.CharField(max_length=255)
-    sponsor = models.CharField(max_length=1, choices=Sponsor.choices)
-    objective = models.CharField(max_length=255, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    eligibility_criteria = models.TextField(blank=True, null=True)
-    start_date = models.DateField(auto_now_add=True)
-    end_date = models.DateField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    budget = models.DecimalField(max_digits=10, decimal_places=2)
-    number_of_beneficiaries = models.SmallIntegerField(default=0)
-
-    def __str__(self):
-        return self.title
-
-
-class FarmerSubsidy(models.Model):
-    farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE)
-    subsidy = models.ForeignKey(
-        SubsidyProgram, related_name="farmers_subsidy", on_delete=models.CASCADE
-    )
-    redemption_date = models.DateField(auto_now_add=True)
-    amount_received = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
-
-    # Update the number of beneficiaries in the program
-    def update_the_num_of_beneficiaries(self):
+    def calculate_point_earned(self):
+        """Calculate the points earned by the quantity"""
         pass
 
 
@@ -266,14 +234,3 @@ class CultivatedField(models.Model):
                 name="unique_field_name",
             )
         ]
-
-
-# class ProductionDifficulties(models.Model):
-#     pass
-
-
-# class ProductionShocks(models.Model):
-#     # Flood
-#     # Drought
-#     #
-#     pass

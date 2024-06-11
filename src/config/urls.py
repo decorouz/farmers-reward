@@ -7,6 +7,7 @@ urlpatterns = [
     path("", include("core.urls")),
     path("market", include("market.urls")),
     path("farmers/", include("farmers.urls")),
+    path("subsidy/", include("subsidy.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
 ]
 
