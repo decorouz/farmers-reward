@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     # Third party apps
     "debug_toolbar",
     "django_extensions",
+    "cities_light",
     # User defined apps
     "core",
     "farmers",
@@ -81,14 +82,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 
-from .db import *  # noqa
+# from .db import *  # noqa
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -129,9 +130,22 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "a_local_cdn/static"
 
+
+# Base url to serve media files
+MEDIA_URL = "media/"
+
+# Path where media is stored'
+MEDIA_ROOT = BASE_DIR / "media"
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# User Defined Configurations
+CITIES_LIGHT_TRANSLATION_LANGUAGES = ["en"]  # Set the translation languages
+CITIES_LIGHT_INCLUDE_COUNTRIES = ["NG"]
+CITIES_LIGHT_INCLUDE_CITY_TYPES = ["PPL"]  # Include specific city types
+CITIES_LIGHT_APP = "core"
 AUTH_USER_MODEL = "core.User"
