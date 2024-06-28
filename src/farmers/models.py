@@ -211,6 +211,8 @@ class Farmer(PersonalInfo):
 
 
 class FarmersMarketTransaction(TimeStampedModel):
+    """A model to track the transactions between a farmer and a market"""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     farmer = models.ForeignKey(
         Farmer, on_delete=models.RESTRICT, related_name="transactions"
@@ -233,6 +235,29 @@ class FarmersMarketTransaction(TimeStampedModel):
     def calculate_earned_points(self):
         """Calculate the points earned by the quantity"""
         return int(self.quantity)
+
+
+class Badge(TimeStampedModel):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to="badges/")
+    image_thumbnail = models.ImageField(
+        upload_to="badges/thumbnails/", blank=True, null=True
+    )
+    points_required = models.PositiveIntegerField()
+
+    def __str__(self) -> str:
+        return self.name
+
+
+# UserBadge Model
+class UserBadge(models.Model):
+    farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE)
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    earned_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.farmer.first_name} earned {self.badge.name}"
 
 
 class CultivatedField(TimeStampedModel):
