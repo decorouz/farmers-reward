@@ -238,9 +238,16 @@ class FarmersMarketTransaction(TimeStampedModel):
 
 
 class Badge(TimeStampedModel):
-    name = models.CharField(max_length=255)
+    class BadgeType(models.TextChoices):
+        MEMBERSHIP_BRONZE = "B", "Bronze"
+        MEMBERSHIP_SILVER = "S", "Silver"
+        MEMBERSHIP_GOLD = "G", "Gold"
+
+    name = models.CharField(
+        max_length=255, choices=BadgeType.choices, default=BadgeType.MEMBERSHIP_BRONZE
+    )
     description = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to="badges/")
+    image = models.ImageField(upload_to="farmers/badges/")
     image_thumbnail = models.ImageField(
         upload_to="badges/thumbnails/", blank=True, null=True
     )
@@ -347,7 +354,7 @@ class CultivatedCrop(TimeStampedModel):
     field = models.ForeignKey(
         CultivatedField, related_name="cultivated_crop", on_delete=models.CASCADE
     )
-    crop = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    crop = models.CharField(max_length=255, default="Wheat")
     planting_date = models.DateField(null=True, blank=True)
     harvest_date = models.DateField(null=True, blank=True)
     yield_amount = models.DecimalField(
@@ -360,6 +367,7 @@ class CultivatedCrop(TimeStampedModel):
 
 class Shock(TimeStampedModel):
     # Flooding, Herdsmen, Weed pressure, drought,
+    name = models.CharField(max_length=255, default="Flooding")
     cultivated_field = models.ForeignKey(
         CultivatedField, on_delete=models.CASCADE, related_name="shocks"
     )
@@ -367,4 +375,4 @@ class Shock(TimeStampedModel):
     description = models.TextField()
 
     def __str__(self):
-        return f"{self.cultivated_field.id}-{self.date}"
+        return f"{self.name}-{self.cultivated_field.id}"

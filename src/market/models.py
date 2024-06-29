@@ -54,7 +54,7 @@ class ContactPerson(TimeStampedModel):
     ]
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    phone = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=255)
     email = models.EmailField(blank=True, null=True)
     role = models.CharField(max_length=255, choices=ROLE, default="extension_agent")
     is_active = models.BooleanField(default=True)
@@ -62,7 +62,7 @@ class ContactPerson(TimeStampedModel):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["phone", "email"],
+                fields=["phone_number", "email"],
                 name="unique_contact_person",
             )
         ]
@@ -85,6 +85,14 @@ class PaymentMethod(TimeStampedModel):
         default=PaymentMethodChoices.CASH,
     )
     description = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name"],
+                name="unique_payment_method",
+            )
+        ]
 
     def __str__(self):
         return self.get_name_display()
@@ -180,6 +188,8 @@ class Market(Address):
 
 
 class MarketProduct(TimeStampedModel):
+    """To track the price of a product in a market"""
+
     market = models.ForeignKey(
         Market, on_delete=models.SET_NULL, related_name="market_product", null=True
     )

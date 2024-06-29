@@ -168,7 +168,7 @@ class InputPriceHistory(TimeStampedModel):
     # unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
 
     def __str__(self):
-        return f"{self.item}-{self.date}"
+        return f"{self.item}-{self.updated_on}-{self.price}"
 
 
 # Create your models here.

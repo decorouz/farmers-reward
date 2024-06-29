@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from farmers.models import (
+    Badge,
     CultivatedCrop,
     CultivatedField,
     CultivatedFieldHistory,
@@ -9,6 +10,7 @@ from farmers.models import (
     FarmersMarketTransaction,
     FieldExtensionOfficer,
     Shock,
+    UserBadge,
 )
 
 # Register your models here.
@@ -29,6 +31,7 @@ class FieldExtensionOfficerAdmin(admin.ModelAdmin):
         "state_of_residence",
     )
     list_select_related = ("state_of_origin", "state_of_residence")
+    prepopulated_fields = {"slug": ("first_name", "last_name", "phone_number")}
 
 
 @admin.register(Farmer)
@@ -52,6 +55,19 @@ class FarmerAdmin(admin.ModelAdmin):
         "verification_status",
         "verification_date",
     )
+    list_select_related = (
+        "state_of_origin",
+        "state_of_residence",
+        "cooperative_society",
+        "field_extension_officer",
+    )
+    prepopulated_fields = {
+        "slug": (
+            "first_name",
+            "last_name",
+            "phone_number",
+        )
+    }
 
 
 @admin.register(FarmersMarketTransaction)
@@ -109,3 +125,18 @@ class CultivatedCropAdmin(admin.ModelAdmin):
 @admin.register(Shock)
 class ShockAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Badge)
+class BadgeAdmin(admin.ModelAdmin):
+    list_display = ("name", "image_thumbnail", "points_required")
+    list_filter = ("points_required",)
+    list_filter = ("name",)
+
+
+@admin.register(UserBadge)
+class UserBadgeAdmin(admin.ModelAdmin):
+    list_display = ("farmer", "badge", "earned_on")
+    list_select_related = ("farmer", "badge")
+    list_filter = ("earned_on", "badge", "farmer")
+    list_select_related = ("farmer", "badge")
