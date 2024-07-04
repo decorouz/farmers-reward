@@ -1,5 +1,6 @@
 import random
 
+from cities_light.models import Country, Region, SubRegion
 from django.core.management.base import BaseCommand
 from faker import Faker
 
@@ -103,7 +104,7 @@ class Command(BaseCommand):
                 date_of_birth=fake.date_of_birth(),
                 # age=random.randint(25, 60),
                 education=random.randint(1, 5),
-                # state_of_origin=fake.state(),
+                state_of_origin=fake.state(),
                 # state_of_residence=fake.state(),
                 phone_number=fake.phone_number(),
                 slug=fake.slug(),

@@ -4,7 +4,7 @@ An application that reward farmers for participating at a local market near them
 
 ## Features
 - Farmers Market Directory
-- Major Commodity Price Aggregation and Monitoring.
+- Major Product Price Aggregation and Monitoring.
 - Local Farmers Directory and their market characteristics
 - Local Cultivated Field Directory Plus Soil information
 - Point based Subsidy management system (Implementation and Impact Measurement)
