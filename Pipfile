@@ -10,6 +10,16 @@ black = "*"
 djhtml = "*"
 pre-commit = "*"
 django-extensions = "*"
+pillow = "*"
+geopy = "*"
+googlemaps = "*"
+python-dotenv = "*"
+psycopg2 = "*"
+dj-database-url = "*"
+python-decouple = "*"
+django-cities-light = "*"
+rav = "*"
+django-compressor = "*"
 
 [dev-packages]
 

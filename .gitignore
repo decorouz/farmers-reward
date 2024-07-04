@@ -87,3 +87,13 @@ local_settings.py
 
 .env
 db.sqlite3
+
+# ignore vendor files
+src/staticfiles/vendors
+
+remove_migrations.py
+node_modules
+local-cdn
+z_utils.py
+media
+.docs
