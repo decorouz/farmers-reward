@@ -9,6 +9,24 @@ from core.models import TimeStampedModel
 from market.models import Market, Product
 from market.validators import validate_file_size
 
+from .managers import FarmersMarketTransactionQuerySet
+
+
+class FarmersCooperative(TimeStampedModel):
+    name = models.CharField(max_length=255)
+    chairman = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=13, unique=True)
+    location = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    registeration_date = models.DateField(auto_now_add=True)
+    registration_number = models.CharField(max_length=255, unique=True)
+    verification_status = models.BooleanField(default=False)
+    number_of_members = models.SmallIntegerField(default=0)
+    blacklisted = models.BooleanField(default=False)  # Can be appealed
+
+    def __str__(self):
+        return self.name
+
 
 class PersonalInfo(TimeStampedModel):
     class IdentificationType(models.TextChoices):
@@ -34,23 +52,24 @@ class PersonalInfo(TimeStampedModel):
     gender = models.CharField(max_length=1, choices=Gender.choices)
     date_of_birth = models.DateField(verbose_name=("Birthday"), null=True, blank=True)
     state_of_origin = models.ForeignKey(
-        Region,
+        SubRegion,
         on_delete=models.SET_NULL,
-        related_name="state_of_origin",
+        related_name="+",
         null=True,
         blank=True,
     )
     state_of_residence = models.ForeignKey(
         Region,
         on_delete=models.SET_NULL,
-        related_name="state_of_residence",
+        related_name="+",
         null=True,
         blank=True,
     )
     education = models.IntegerField(choices=Education.choices)
     phone_number = models.CharField(max_length=13, unique=True, default="9****")
     verification_status = models.BooleanField(default=False)
-
+    slug = models.SlugField(max_length=255, unique=True)
+    blacklisted = models.BooleanField(default=False)  # Can be appealed
     means_of_identification = models.CharField(
         max_length=2,
         choices=IdentificationType.choices,
@@ -91,45 +110,15 @@ class PersonalInfo(TimeStampedModel):
         update the verification status"""
         pass
 
+    @property
     def age(self):
         today = date.today()
         dob = self.date_of_birth
         return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
 
-class FarmersCooperative(TimeStampedModel):
-    name = models.CharField(max_length=255)
-    chairman = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=13, unique=True)
-    location = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    registeration_date = models.DateField(auto_now_add=True)
-    registration_number = models.CharField(max_length=255, unique=True)
-    verification_status = models.BooleanField(default=False)
-    number_of_members = models.SmallIntegerField(default=0)
-    blacklisted = models.BooleanField(default=False)  # Can be appealed
-
-    def __str__(self):
-        return self.name
-
-
 class FieldExtensionOfficer(PersonalInfo):
     email = models.EmailField(max_length=255, unique=True, blank=True, null=True)
-    slug = models.SlugField(max_length=255, unique=True)
-    state_of_origin = models.ForeignKey(
-        Region,
-        on_delete=models.SET_NULL,
-        related_name="feo_state_of_origin",
-        null=True,
-        blank=True,
-    )
-    state_of_residence = models.ForeignKey(
-        Region,
-        on_delete=models.SET_NULL,
-        related_name="feo_state_of_residence",
-        null=True,
-        blank=True,
-    )
 
     class Meta:
         constraints = [
@@ -165,6 +154,7 @@ class Farmer(PersonalInfo):
     cooperative_society = models.ForeignKey(
         FarmersCooperative,
         on_delete=models.PROTECT,
+        related_name="farmer",
         null=True,
         blank=True,
     )
@@ -181,9 +171,7 @@ class Farmer(PersonalInfo):
         choices=AgriculturalActivities.choices,
         default=AgriculturalActivities.CROP_PRODUCER,
     )
-    slug = models.SlugField(unique=True)
     farmsize = models.DecimalField(max_digits=10, decimal_places=2)
-    blacklisted = models.BooleanField(default=False)  # Can be appealed
 
     class Meta:
         constraints = [
@@ -195,9 +183,6 @@ class Farmer(PersonalInfo):
 
     def __str__(self):
         return f"{self.first_name}, {self.last_name}"
-
-    def get_current_point_balance(self):
-        pass
 
     # Generate a unique identification number for the farmer
     def generate_farmer_id(self):
@@ -222,11 +207,12 @@ class FarmersMarketTransaction(TimeStampedModel):
     )
     produce = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveSmallIntegerField()
-    # transaction_date = models.DateField(auto_now=True)
+    transaction_date = models.DateField(auto_now=True)
     points_earned = models.IntegerField(default=0, editable=False)
+    objects = FarmersMarketTransactionQuerySet.as_manager()
 
     def __str__(self):
-        return f"{self.market.name}{self.created_on}"
+        return f"{self.id}--{self.market.id}--{self.farmer.id}"
 
     def save(self, *args, **kwargs):
         self.points_earned = self.calculate_earned_points()
@@ -235,6 +221,128 @@ class FarmersMarketTransaction(TimeStampedModel):
     def calculate_earned_points(self):
         """Calculate the points earned by the quantity"""
         return int(self.quantity)
+
+
+class CultivatedField(TimeStampedModel):
+    field_size = models.FloatField(null=True, blank=True)
+    soil_test = models.BooleanField(default=False)
+    town = models.CharField(max_length=255)
+    region = models.ForeignKey(Region, on_delete=models.PROTECT, null=True, blank=True)
+    sub_region = models.ForeignKey(
+        SubRegion, on_delete=models.PROTECT, null=True, blank=True
+    )
+    country = models.ForeignKey(
+        Country, on_delete=models.PROTECT, null=True, blank=True
+    )
+
+    latitude = models.FloatField(null=True, blank=True)
+    logitude = models.FloatField(null=True, blank=True)
+    slug = models.SlugField(unique=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["id"],
+                name="unique_field_name",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.id}"
+
+    def get_absolute_url(self):
+        return reverse("cultivatedfield_detail", kwargs={"slug": self.slug})
+
+
+class CultivatedFieldHistory(TimeStampedModel):
+    """Keep track of the history of a cultivated field"""
+
+    class FarmingPractice(models.TextChoices):
+        MONO_CROPPING = "MONO", "Mono Cropping"
+        MULTI_CROPPING = "MULTI", "Multi Cropping"
+        INTER_CROPPING = "INTER", "Inter-Cropping"
+
+    cultivated_field = models.ForeignKey(
+        CultivatedField,
+        on_delete=models.CASCADE,
+        related_name="cultivated_field_history",
+        null=True,
+        blank=True,
+    )
+    farming_system = models.CharField(
+        max_length=7,
+        choices=FarmingPractice.choices,
+        default=FarmingPractice.MONO_CROPPING,
+    )
+    farmer = models.ForeignKey(
+        Farmer, on_delete=models.SET_NULL, related_name="cultivated_fields", null=True
+    )
+    primary_crop_type = models.CharField(max_length=50, default="Wheat")
+    secondary_crop_type = models.CharField(max_length=50, null=True, blank=True)
+    pri_crop_planting_date = models.DateField(null=True, blank=True)
+    sec_crop_planting_date = models.DateField(null=True, blank=True)
+    pri_crop_harvest_date = models.DateField(null=True, blank=True)
+    sec_crop_harvest_date = models.DateField(null=True, blank=True)
+    pri_crop_yield = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    sec_crop_yield = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    fertilizer_use = models.BooleanField(default=False)
+    fertilizer_qty = models.FloatField(null=True, blank=True)
+    manure_compost_use = models.BooleanField(default=False)
+    average_ridge_weed_biomass = models.FloatField(null=True, blank=True)
+    striga = models.BooleanField(default=False)
+    row_spacing = models.FloatField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cultivated_field", "created_on"],
+                name="unique_cultivated_field_history",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.cultivated_field} {self.year}"
+
+    @property
+    def year(self):
+        return self.created_on.year
+
+    def calculate_fertilizer_rate(self):
+        pass
+
+
+class SoilProperty(models.Model):
+    cultivated_field = models.ForeignKey(
+        CultivatedField, on_delete=models.CASCADE, related_name="soil_properties"
+    )
+    texture = models.CharField(max_length=100)
+    pH = models.DecimalField(max_digits=4, decimal_places=2)
+    organic_matter = models.DecimalField(max_digits=5, decimal_places=2)
+    nitrogen_content = models.DecimalField(max_digits=5, decimal_places=2)
+    phosphorus_content = models.DecimalField(max_digits=5, decimal_places=2)
+    potassium_content = models.DecimalField(max_digits=5, decimal_places=2)
+    soil_test_date = models.DateField(auto_now=True)
+    soil_lab = models.CharField(max_length=255, default="IITA Soil Lab")
+    test_results_file = models.FileField(
+        upload_to="soil_tests/",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["cultivated_field", "soil_test_date"],
+                name="unique_soil_test_date",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.cultivated_field} {self.soil_test_date}"
 
 
 class Badge(TimeStampedModel):
@@ -265,114 +373,3 @@ class UserBadge(models.Model):
 
     def __str__(self):
         return f"{self.farmer.first_name} earned {self.badge.name}"
-
-
-class CultivatedField(TimeStampedModel):
-
-    class SoilType(models.TextChoices):
-        CLAY_SOIL = "CLAY", "Clay Soil"
-        SANDY_SOIL = "SANDY", "Sandy Soil"
-        LOAMY_SOIL = "LOAMY", "Loamy Soil"
-        SILT_SOIL = "SILT", "Silt Soil"
-
-    farmer = models.ForeignKey(
-        Farmer, on_delete=models.SET_NULL, related_name="cultivated_fields", null=True
-    )
-    slug = models.SlugField(unique=True)
-    field_size = models.FloatField(null=True, blank=True)
-    town = models.CharField(max_length=255)
-    region = models.ForeignKey(Region, on_delete=models.PROTECT, null=True, blank=True)
-    sub_region = models.ForeignKey(
-        SubRegion, on_delete=models.PROTECT, null=True, blank=True
-    )
-
-    country = models.ForeignKey(
-        Country, on_delete=models.PROTECT, null=True, blank=True
-    )
-
-    latitude = models.FloatField(null=True, blank=True)
-    logitude = models.FloatField(null=True, blank=True)
-    soil_type = models.CharField(
-        max_length=7, choices=SoilType.choices, default=SoilType.CLAY_SOIL
-    )
-    soil_test_date = models.DateField(auto_now=True)
-    test_results_file = models.FileField(
-        upload_to="soil_tests/",
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["id"],
-                name="unique_field_name",
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.id}"
-
-    def get_absolute_url(self):
-        return reverse("cultivatedfield_detail", kwargs={"slug": self.slug})
-
-
-class CultivatedFieldHistory(TimeStampedModel):
-    class FarmingPractice(models.TextChoices):
-        MONO_CROPPING = "MONO", "Mono Cropping"
-        MULTI_CROPPING = "MULTI", "Multi Cropping"
-        MIXED_CROPPING = "MIXED", "Mixed Cropping"
-
-    cultivated_field = models.ForeignKey(
-        CultivatedField,
-        on_delete=models.CASCADE,
-        related_name="cultivated_field_history",
-        null=True,
-        blank=True,
-    )
-    farming_system = models.CharField(
-        max_length=7,
-        choices=FarmingPractice.choices,
-        default=FarmingPractice.MONO_CROPPING,
-    )
-    year = models.PositiveIntegerField()
-    primary_crop_type = models.CharField(max_length=50, null=True, blank=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["cultivated_field", "year"],
-                name="unique_cultivated_field_history",
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.cultivated_field} {self.year}"
-
-
-class CultivatedCrop(TimeStampedModel):
-    field = models.ForeignKey(
-        CultivatedField, related_name="cultivated_crop", on_delete=models.CASCADE
-    )
-    crop = models.CharField(max_length=255, default="Wheat")
-    planting_date = models.DateField(null=True, blank=True)
-    harvest_date = models.DateField(null=True, blank=True)
-    yield_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
-
-    def __str__(self):
-        return f"{self.field.id} - {self.crop.name} ({self.harvest_date})"
-
-
-class Shock(TimeStampedModel):
-    # Flooding, Herdsmen, Weed pressure, drought,
-    name = models.CharField(max_length=255, default="Flooding")
-    cultivated_field = models.ForeignKey(
-        CultivatedField, on_delete=models.CASCADE, related_name="shocks"
-    )
-    date = models.DateField()
-    description = models.TextField()
-
-    def __str__(self):
-        return f"{self.name}-{self.cultivated_field.id}"

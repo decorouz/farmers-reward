@@ -10,10 +10,8 @@ class TimeStampedModel(models.Model):
     """An abstract base class model that provides selfupdating
     ``created`` and ``modified`` fields."""
 
-    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    created_on = models.DateTimeField(auto_now_add=True)
-    updated_on = models.DateTimeField(auto_now=True)
+    created_on = models.DateField(auto_now_add=True)
+    updated_on = models.DateField(auto_now=True)
 
     class Meta:
         abstract = True

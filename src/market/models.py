@@ -17,7 +17,6 @@ class Address(TimeStampedModel):
     sub_region = models.ForeignKey(
         SubRegion, on_delete=models.SET_NULL, null=True, blank=True
     )
-    # city = models.ForeignKey(City, on_delete=models.SET_NULL, null=True, blank=True)
     country = models.ForeignKey(
         Country, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -123,7 +122,8 @@ class Product(TimeStampedModel):
         DRY_TOMATOES = "DRIED TOMATOES", "Dry Tomatoes"
         PEPPER = "PEPPER", "Pepper"
 
-    name = models.CharField(max_length=50, choices=ProductChoices.choices)
+    name = models.CharField(max_length=50, choices=ProductChoices.choices, unique=True)
+    description = models.TextField(blank=True, null=True)
     slug = models.SlugField(unique=True)
     local_name = models.CharField(max_length=50, blank=True, null=True)
     unit = models.IntegerField(
@@ -151,7 +151,7 @@ class Product(TimeStampedModel):
 
 # Only admin can create a market
 class Market(Address):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(unique=True)  # slug
     description = models.TextField(blank=True, null=True)
     number_of_vendors = models.IntegerField(default=0)

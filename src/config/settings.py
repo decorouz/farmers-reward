@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "django_extensions",
     "cities_light",
+    # "compressor",
     # User defined apps
     "core",
     "farmers",
@@ -70,7 +71,6 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "config.context_processors.vendor_files",
             ],
         },
     },
@@ -125,10 +125,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = "static/"
+# Flowbite configuration
+# COMPRESS_ENABLED = True
+# STATICFILES_FINDERS = ("compressor.finders.CompressorFinder",)
 
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "a_local_cdn/static"
+STATIC_URL = "static/"
+STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
+STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
+STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
+
+# source(s) for python manage.py collectstatic
+STATICFILES_DIRS = [STATICFILES_BASE_DIR]
+
+# output for python manage.py collectstatic
+# local cdn
+STATIC_ROOT = BASE_DIR.parent / "local-cdn"
 
 
 # Base url to serve media files

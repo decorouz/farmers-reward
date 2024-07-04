@@ -35,20 +35,21 @@ class Fertilizer(TimeStampedModel):
         DP = "DP", "Diammonium Phosphate"
         OTHER = "OTHER", "Others"
 
-    name = models.CharField(max_length=100, unique=True)
     fertilizer_type = models.CharField(
         max_length=20, choices=FertilizerChoice.choices, null=True, blank=True
     )
-    current_price = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="bag")
+    name = models.CharField(max_length=100, unique=True)
+    fertilizer_blend = models.CharField(max_length=255, default="20:10:10")
+    # current_price = models.DecimalField(
+    #     max_digits=7, decimal_places=2, null=True, blank=True
+    # )
+    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="bag")
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 name="unique_fertilizer",
-                fields=["name", "fertilizer_type"],
+                fields=["name", "fertilizer_type", "fertilizer_blend"],
                 condition=Q(
                     name__iexact=Lower("name"),
                 ),
@@ -56,11 +57,11 @@ class Fertilizer(TimeStampedModel):
         ]
 
     def __str__(self):
-        return f"{self.fertilizer_type}-{self.name}"
+        return f"{self.name}-{self.fertilizer_type}-{self.fertilizer_blend}"
 
 
 class Seed(TimeStampedModel):
-    class SeedChoice(models.TextChoices):
+    class CropChoice(models.TextChoices):
         MAIZE = "MAIZE", "Maize"
         COWPEA = "COWPEA", "Cowpea"
         SOYBEAN = "SOYBEAN", "Soybean"
@@ -77,12 +78,13 @@ class Seed(TimeStampedModel):
         OTHER = "OTHER", "Others"
 
     seed_variety = models.CharField(max_length=255, unique=True, null=True, blank=True)
-    current_price = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="kg")
-    seed_type = models.CharField(
-        max_length=20, choices=SeedChoice.choices, null=True, blank=True
+    gmo = models.BooleanField(default=False)
+    # current_price = models.DecimalField(
+    #     max_digits=7, decimal_places=2, null=True, blank=True
+    # )
+    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="kg")
+    name = models.CharField(
+        max_length=20, choices=CropChoice.choices, null=True, blank=True
     )
 
     class Meta:
@@ -91,13 +93,13 @@ class Seed(TimeStampedModel):
                 condition=Q(
                     seed_variety__iexact=Lower("seed_variety"),
                 ),
-                fields=["seed_type", "seed_variety"],
+                fields=["name", "seed_variety"],
                 name="unique_seed",
             )
         ]
 
     def __str__(self):
-        return f"{self.seed_type}-{self.seed_variety}"
+        return f"{self.name}-{self.seed_variety}"
 
 
 class Mechanization(TimeStampedModel):
@@ -108,25 +110,25 @@ class Mechanization(TimeStampedModel):
         FERT_APP = "FERT_APP", "Fertilizer Application"
         PLANTING = "PLANTING", "Planting"
 
-    current_price = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
+    # current_price = models.DecimalField(
+    #     max_digits=7, decimal_places=2, null=True, blank=True
+    # )
 
-    mechanization_operation = models.CharField(
+    name = models.CharField(
         max_length=20, choices=MechanizationChoice.choices, null=True, blank=True
     )
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="ha")
+    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="ha")
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["mechanization_operation"],
+                fields=["name"],
                 name="unique_mechanization_operation",
             )
         ]
 
     def __str__(self):
-        return f"{self.get_mechanization_operation_display()}"
+        return f"{self.get_name_display()}"
 
 
 class Agrochemical(TimeStampedModel):
@@ -137,10 +139,10 @@ class Agrochemical(TimeStampedModel):
         INSECTICIDE = "INT", "Insecticide"
 
     name = models.CharField(max_length=255, unique=True, null=True, blank=True)
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="ltr")
-    current_price = models.DecimalField(
-        max_digits=7, decimal_places=2, null=True, blank=True
-    )
+    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="ltr")
+    # current_price = models.DecimalField(
+    #     max_digits=7, decimal_places=2, null=True, blank=True
+    # )
     agrochemical_name = models.CharField(
         max_length=3, choices=AgrochemicalChoice.choices, null=True, blank=True
     )
@@ -160,21 +162,10 @@ class Agrochemical(TimeStampedModel):
         return f"{self.name}({self.agrochemical_name})"
 
 
-class InputPriceHistory(TimeStampedModel):
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    item = GenericForeignKey("content_type", "object_id")
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
-
-    def __str__(self):
-        return f"{self.item}-{self.updated_on}-{self.price}"
-
-
 # Create your models here.
 class SubsidyProgram(TimeStampedModel):
 
-    class ProgramAdministeredBy(models.TextChoices):
+    class Sponsor(models.TextChoices):
         STATE = "STATE", "State Government"
         NATIONAL = "NATIONAL", "National Government"
         NGO = "NGO", "Non Governmental Organization"
@@ -184,12 +175,11 @@ class SubsidyProgram(TimeStampedModel):
     slug = models.SlugField(unique=True)
     source_of_funding = models.CharField(max_length=255, blank=True, null=True)
     program_director = models.CharField(max_length=255, blank=True, null=True)
-    administrator_name = models.CharField(max_length=255, blank=True, null=True)
     legislation = models.CharField(max_length=255, blank=True, null=True)
     number_of_beneficiaries = models.SmallIntegerField(default=0)
-    program_adminstrator = models.CharField(
+    sponsor_name = models.CharField(
         max_length=10,
-        choices=ProgramAdministeredBy.choices,
+        choices=Sponsor.choices,
     )
     start_date = models.DateField()
     end_date = models.DateField()
@@ -208,7 +198,7 @@ class SubsidyProgram(TimeStampedModel):
             self.save()
 
     def __str__(self):
-        return f"{self.region}-{self.title}"
+        return f"{self.title}-{self.region}"
 
     def get_absolute_url(self):
         return reverse("model_detail", kwargs={"slug": self.slug})
@@ -225,7 +215,7 @@ class SubsidizedItem(TimeStampedModel):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     subsidized_item = GenericForeignKey("content_type", "object_id")  # content object
-
+    current_price = models.DecimalField(max_digits=7, decimal_places=2)
     date = models.DateField(auto_now_add=True)
 
     class Meta:
@@ -246,6 +236,17 @@ class SubsidizedItem(TimeStampedModel):
 
     def __str__(self):
         return f"{self.subsidized_item}"
+
+
+class InputPriceHistory(TimeStampedModel):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    item = GenericForeignKey("content_type", "object_id")
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
+
+    def __str__(self):
+        return f"{self.item}-{self.updated_on}-{self.price}"
 
 
 class SubsidyRate(TimeStampedModel):
@@ -273,57 +274,48 @@ class SubsidyInstance(TimeStampedModel):
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     redemption_date = models.DateField(auto_now_add=True)
     farmer = models.ForeignKey(
-        Farmer, related_name="farmers_subsidy", on_delete=models.DO_NOTHING
+        Farmer, related_name="subsidy_intance", on_delete=models.DO_NOTHING
     )
-    subsidized_item = models.ForeignKey(
+    item = models.ForeignKey(
         SubsidizedItem,
-        related_name="farmers_subsidy",
-        on_delete=models.DO_NOTHING,
-        null=True,
-        blank=True,
+        related_name="subsidy_intance",
+        on_delete=models.PROTECT,
     )
     subsidy_program = models.ForeignKey(
         SubsidyProgram,
-        related_name="farmers_subsidy",
+        related_name="subsidy_intance",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
     )
-    # original_price = models.DecimalField(max_digits=7, decimal_places=2)
     discounted_price = models.DecimalField(
         max_digits=7, decimal_places=2, blank=True, editable=False
     )
 
     @cached_property
     def item_unit(self):
-        return self.subsidized_item.get_unit()
+        return self.item.get_unit()
 
     def save(self, *args, **kwargs):
         # Get the specific subsidy rate for this subsidy program and subsidized item
         try:
             subsidy_rate = SubsidyRate.objects.get(
                 subsidy_program=self.subsidy_program,
-                subsidized_item=self.subsidized_item,
+                subsidized_item=self.item,
             )
             rate = subsidy_rate.rate
         except SubsidyRate.DoesNotExist:
             rate = Decimal(100)  # Default rate if no specific rate is found.
-        self.discounted_price = (self.subsidized_item.subsidized_item.current_price) * (
-            1 - rate / 100
-        )
+        self.discounted_price = (self.item.current_price) * (1 - rate / 100)
         super().save(*args, **kwargs)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["farmer", "subsidized_item", "subsidy_program"],
+                fields=["farmer", "item", "subsidy_program"],
                 name="unique_farmer_subsidy",
             )
         ]
 
-    # Update the number of beneficiaries in the program
-    def update_the_num_of_beneficiaries(self):
-        pass
-
     def __str__(self):
-        return f"{self.id} - {self.subsidized_item}"
+        return f"{self.id} - {self.item}"

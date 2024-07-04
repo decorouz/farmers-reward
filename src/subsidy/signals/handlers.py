@@ -3,20 +3,18 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from subsidy.models import (
-    Agrochemical,
-    Fertilizer,
+from subsidy.models import (  # Agrochemical,; Fertilizer,; Mechanization,; Seed,
     InputPriceHistory,
-    Mechanization,
-    Seed,
+    SubsidizedItem,
     SubsidyInstance,
 )
 
 
-@receiver(pre_save, sender=Fertilizer)
-@receiver(pre_save, sender=Agrochemical)
-@receiver(pre_save, sender=Mechanization)
-@receiver(pre_save, sender=Seed)
+# @receiver(pre_save, sender=Fertilizer)
+# @receiver(pre_save, sender=Agrochemical)
+# @receiver(pre_save, sender=Mechanization)
+# @receiver(pre_save, sender=Seed)
+@receiver(pre_save, sender=SubsidizedItem)
 def update_input_price_history(sender, instance, *args, **kwargs):
     """Create a record of price changes in the input price history table."""
     print("See something here", instance)
@@ -27,13 +25,12 @@ def update_input_price_history(sender, instance, *args, **kwargs):
                 content_type=ContentType.objects.get_for_model(sender),
                 object_id=instance.pk,
                 price=instance.current_price,
-                # unit=instance.unit,
+                unit=instance.unit,
             )
 
 
 @receiver(post_save, sender=SubsidyInstance)
 def update_subsidy_beneficiaries(sender, instance, *args, **kwargs):
-    print(sender.farmer)
     if (
         kwargs["created"]
         and not SubsidyInstance.objects.filter(

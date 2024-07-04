@@ -2,14 +2,12 @@ from django.contrib import admin
 
 from farmers.models import (
     Badge,
-    CultivatedCrop,
     CultivatedField,
     CultivatedFieldHistory,
     Farmer,
     FarmersCooperative,
     FarmersMarketTransaction,
     FieldExtensionOfficer,
-    Shock,
     UserBadge,
 )
 
@@ -23,12 +21,15 @@ class FieldExtensionOfficerAdmin(admin.ModelAdmin):
         "first_name",
         "last_name",
         "email",
+        "phone_number",
         "gender",
         "date_of_birth",
         "age",
         "education",
         "state_of_origin",
         "state_of_residence",
+        "means_of_identification",
+        "identification_number",
     )
     list_select_related = ("state_of_origin", "state_of_residence")
     prepopulated_fields = {"slug": ("first_name", "last_name", "phone_number")}
@@ -77,54 +78,69 @@ class FarmersMarketTransactionAdmin(admin.ModelAdmin):
         "market",
         "produce",
         "quantity",
-        "created_on",
+        "transaction_date",
         "points_earned",
     )
     list_select_related = ("farmer", "market", "produce")
-    list_filter = ("created_on", "farmer")
+    list_filter = ("market__id", "farmer")
 
 
 @admin.register(CultivatedField)
 class CultivatedFieldAdmin(admin.ModelAdmin):
     list_display = (
-        "farmer",
         "field_size",
+        "soil_test",
         "town",
         "region",
         "sub_region",
         "country",
         "latitude",
         "logitude",
-        "soil_type",
-        "soil_test_date",
-        "test_results_file",
     )
-    list_select_related = ("farmer", "region", "sub_region", "country")
+    list_select_related = ("region", "sub_region", "country")
     list_filter = ("sub_region", "country")
 
 
 @admin.register(CultivatedFieldHistory)
 class CultivatedFieldHistoryAdmin(admin.ModelAdmin):
     list_display = (
+        "farmer",
+        "farming_system",
         "cultivated_field",
         "farming_system",
-        "year",
         "primary_crop_type",
+        "secondary_crop_type",
+        "pri_crop_yield",
+        "sec_crop_yield",
+        "pri_crop_planting_date",
+        "sec_crop_planting_date",
+        "pri_crop_harvest_date",
+        "sec_crop_harvest_date",
+        "fertilizer_use",
+        "fertilizer_qty",
+        "manure_compost_use",
+        "average_ridge_weed_biomass",
+        "striga",
+        "row_spacing",
+    )
+    list_select_related = ("cultivated_field", "farmer")
+    list_filter = ("primary_crop_type",)
+
+
+class SoilPropertyAdmin(admin.ModelAdmin):
+    list_display = (
+        "cultivated_field",
+        "texture",
+        "pH",
+        "organic_matter",
+        "nitrogen_content",
+        "phosphorus_content",
+        "potassium_content",
+        "soil_test_date",
+        "soil_lab",
+        "soil_test_date",
     )
     list_select_related = ("cultivated_field",)
-    list_filter = ("year",)
-
-
-@admin.register(CultivatedCrop)
-class CultivatedCropAdmin(admin.ModelAdmin):
-    list_display = ("field", "crop", "planting_date", "harvest_date", "yield_amount")
-    list_select_related = ("field", "crop")
-    list_filter = ("crop", "harvest_date", "planting_date")
-
-
-@admin.register(Shock)
-class ShockAdmin(admin.ModelAdmin):
-    pass
 
 
 @admin.register(Badge)
