@@ -89,7 +89,7 @@ local_settings.py
 db.sqlite3
 
 # ignore vendor files
-src/staticfiles/vendors
+src/staticfiles
 
 remove_migrations.py
 node_modules

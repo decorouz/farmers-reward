@@ -10,10 +10,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("DJANGO_SECRET_KEY", default=None)
+SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DJANGO_DEBUG", cast=bool)
+
 
 ALLOWED_HOSTS = [
     ".railway.app",
@@ -94,6 +95,20 @@ DATABASES = {
 }
 
 # from .db import *  # noqa
+DATABASE_URL = config("DATABASE_URL", default=None)
+
+
+if DATABASE_URL is not None:
+    import dj_database_url
+
+    DATABASE_URL = str(DATABASE_URL)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=30,
+            conn_health_checks=True,
+        )
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
