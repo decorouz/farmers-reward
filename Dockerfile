@@ -54,8 +54,8 @@ ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 # run any other commands that do not need the database
 # such as:
-RUN python manage.py vendor_pull
-RUN python manage.py collectstatic --noinput
+RUN pipenv run python manage.py vendor_pull
+RUN pipenv run python manage.py collectstatic --noinput
 # RUN pipenv run python manage.py collectstatic --noinput
 
 # set the Django default project name
