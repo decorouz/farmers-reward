@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -95,20 +96,20 @@ DATABASES = {
 }
 
 # from .db import *  # noqa
-DATABASE_URL = config("DATABASE_URL", default=None)
+if not DEBUG:
+    DATABASE_URL = config("DATABASE_URL", default=None)
 
+    if DATABASE_URL is not None:
+        import dj_database_url
 
-if DATABASE_URL is not None:
-    import dj_database_url
-
-    DATABASE_URL = str(DATABASE_URL)
-    DATABASES = {
-        "default": dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=30,
-            conn_health_checks=True,
-        )
-    }
+        DATABASE_URL = str(DATABASE_URL)
+        DATABASES = {
+            "default": dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=30,
+                conn_health_checks=True,
+            )
+        }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -156,6 +157,12 @@ STATICFILES_DIRS = [STATICFILES_BASE_DIR]
 # output for python manage.py collectstatic
 # local cdn
 STATIC_ROOT = BASE_DIR.parent / "local-cdn"
+# WhiteNoise
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 
 # Base url to serve media files

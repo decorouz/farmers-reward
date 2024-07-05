@@ -18,6 +18,7 @@ dj-database-url = "*"
 python-decouple = "*"
 django-cities-light = "*"
 gunicorn = "*"
+whitenoise = "*"
 
 [dev-packages]
 
