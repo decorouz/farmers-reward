@@ -6,6 +6,30 @@ from config.env import config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# Gmail Smtp configuration
+
+# default backend
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = config("EMAIL_HOST", cast=str, default=None)
+EMAIL_PORT = config("EMAIL_PORT", cast=str, default="587")  # Recommended
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", cast=str, default=None)
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", cast=str, default=None)
+EMAIL_USE_TLS = config(
+    "EMAIL_USE_TLS", cast=bool, default=True
+)  # Use EMAIL_PORT 587 for TLS
+# EMAIL_USE_SSL = config("EMAIL_USE_TLS", cast=bool, default=False)  # EUse MAIL_PORT 465 for SSL
+
+
+ADMIN_USER_NAME = config("ADMIN_USER_NAME", default="Admin user")
+ADMIN_USER_EMAIL = config("ADMIN_USER_EMAIL", default=None)
+
+MANAGERS = []
+ADMINS = []
+if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
+    ADMINS += [(f"{ADMIN_USER_NAME}", f"{ADMIN_USER_EMAIL}")]
+    MANAGERS = ADMINS
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -42,6 +66,7 @@ INSTALLED_APPS = [
     "farmers",
     "market",
     "subsidy",
+    "waitlist",
 ]
 
 MIDDLEWARE = [
@@ -177,7 +202,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# User Defined Configurations
+# Cities Light configuration
 CITIES_LIGHT_TRANSLATION_LANGUAGES = ["en"]  # Set the translation languages
 CITIES_LIGHT_INCLUDE_COUNTRIES = ["NG"]
 CITIES_LIGHT_INCLUDE_CITY_TYPES = ["PPL"]  # Include specific city types
