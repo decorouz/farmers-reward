@@ -48,6 +48,8 @@ if DEBUG:
     ALLOWED_HOSTS += ["127.0.0.1", "localhost"]
 
 
+CSRF_TRUSTED_ORIGINS = ["https://farmers-reward.railway.ap"]
+
 # Application definition
 
 INSTALLED_APPS = [
