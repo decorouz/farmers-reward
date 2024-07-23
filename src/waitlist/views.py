@@ -11,7 +11,7 @@ def join_waitlist(request):
         form = WaitlistForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "You have successfully joined the waitlist.")
+            # messages.success(request, "You have successfully joined the waitlist.")
             return redirect("waitlist_success")
 
     else:
