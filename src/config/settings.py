@@ -115,21 +115,30 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
 
 # from .db import *  # noqa
 if not DEBUG:
     DATABASE_URL = config("DATABASE_URL", default=None)
 
     if DATABASE_URL is not None:
+        # Extract the endpoint ID from the DATABASE_URL
+        from urllib.parse import urlparse
+
         import dj_database_url
 
         DATABASE_URL = str(DATABASE_URL)
+        parsed_url = urlparse(DATABASE_URL)
+
+        if parsed_url.hostname:
+
+            endpoint_id = parsed_url.hostname.split(".")[0]
+            DATABASE_URL += f"?options=endpoint%3D{endpoint_id}"
         DATABASES = {
             "default": dj_database_url.config(
                 default=DATABASE_URL,
