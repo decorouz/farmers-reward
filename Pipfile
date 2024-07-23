@@ -13,12 +13,12 @@ pillow = "*"
 geopy = "*"
 googlemaps = "*"
 python-dotenv = "*"
-psycopg2 = "*"
 dj-database-url = "*"
 python-decouple = "*"
 django-cities-light = "*"
 gunicorn = "*"
 whitenoise = "*"
+psycopg2-binary = "==2.9.6"
 
 [dev-packages]
 
