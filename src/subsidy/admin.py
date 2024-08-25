@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
+from unfold.admin import ModelAdmin
 
 from .models import (
     Agrochemical,
@@ -32,7 +33,7 @@ class SubsidizedItemInline(GenericTabularInline):
 
 # Define admin classes with relevant configurations
 @admin.register(Fertilizer)
-class FertilizerAdmin(admin.ModelAdmin):
+class FertilizerAdmin(ModelAdmin):
     list_display = (
         "id",
         "fertilizer_type",
@@ -50,7 +51,7 @@ class FertilizerAdmin(admin.ModelAdmin):
 
 
 @admin.register(Seed)
-class SeedAdmin(admin.ModelAdmin):
+class SeedAdmin(ModelAdmin):
     list_display = (
         "id",
         "name",
@@ -65,7 +66,7 @@ class SeedAdmin(admin.ModelAdmin):
 
 
 @admin.register(Mechanization)
-class MechanizationAdmin(admin.ModelAdmin):
+class MechanizationAdmin(ModelAdmin):
     list_display = (
         "id",
         "name",
@@ -78,7 +79,7 @@ class MechanizationAdmin(admin.ModelAdmin):
 
 
 @admin.register(Agrochemical)
-class AgrochemicalAdmin(admin.ModelAdmin):
+class AgrochemicalAdmin(ModelAdmin):
     list_display = (
         "id",
         "name",
@@ -92,9 +93,10 @@ class AgrochemicalAdmin(admin.ModelAdmin):
 
 
 @admin.register(SubsidyProgram)
-class SubsidyProgramAdmin(admin.ModelAdmin):
+class SubsidyProgramAdmin(ModelAdmin):
     list_display = (
         "title",
+        "sponsor_type",
         "sponsor_name",
         "number_of_beneficiaries",
         "legislation",
@@ -112,7 +114,7 @@ class SubsidyProgramAdmin(admin.ModelAdmin):
 
 
 @admin.register(SubsidizedItem)
-class SubsidizedItemAdmin(admin.ModelAdmin):
+class SubsidizedItemAdmin(ModelAdmin):
     list_display = (
         "type",
         "content_type",
@@ -130,7 +132,7 @@ class SubsidizedItemAdmin(admin.ModelAdmin):
 
 
 @admin.register(SubsidyRate)
-class SubsidyRateAdmin(admin.ModelAdmin):
+class SubsidyRateAdmin(ModelAdmin):
     list_display = ("subsidy_program", "subsidized_item", "rate")
     search_fields = ("subsidy_program__title", "subsidized_item__subsidized_item")
     list_selected_related = ("subsidy_program", "subsidized_item")
@@ -138,7 +140,7 @@ class SubsidyRateAdmin(admin.ModelAdmin):
 
 
 @admin.register(SubsidyInstance)
-class SubsidyInstanceAdmin(admin.ModelAdmin):
+class SubsidyInstanceAdmin(ModelAdmin):
     list_display = (
         "farmer",
         "item",
@@ -163,7 +165,7 @@ class SubsidyInstanceAdmin(admin.ModelAdmin):
 
 
 @admin.register(InputPriceHistory)
-class InputPriceHistoryAdmin(admin.ModelAdmin):
+class InputPriceHistoryAdmin(ModelAdmin):
     list_display = (
         "content_type",
         "object_id",

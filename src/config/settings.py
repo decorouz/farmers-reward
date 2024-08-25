@@ -53,6 +53,7 @@ CSRF_TRUSTED_ORIGINS = ["https://farmers-reward-production.up.railway.app"]
 # Application definition
 
 INSTALLED_APPS = [
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -68,6 +69,7 @@ INSTALLED_APPS = [
     "farmers",
     "market",
     "subsidy",
+    "vendors",
     "waitlist",
 ]
 
@@ -115,28 +117,28 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 
 # from .db import *  # noqa
-if not DEBUG:
-    DATABASE_URL = config("DATABASE_URL", default=None)
+# if not DEBUG:
+DATABASE_URL = config("DATABASE_URL", default=None)
 
-    if DATABASE_URL is not None:
-        import dj_database_url
+if DATABASE_URL is not None:
+    import dj_database_url
 
-        DATABASE_URL = str(DATABASE_URL)
-        DATABASES = {
-            "default": dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=30,
-                conn_health_checks=True,
-            )
-        }
+    DATABASE_URL = str(DATABASE_URL)
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=30,
+            conn_health_checks=True,
+        )
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -210,3 +212,14 @@ CITIES_LIGHT_INCLUDE_COUNTRIES = ["NG"]
 CITIES_LIGHT_INCLUDE_CITY_TYPES = ["PPL"]  # Include specific city types
 CITIES_LIGHT_APP = "core"
 AUTH_USER_MODEL = "core.User"
+
+
+# settings.py
+
+
+UNFOLD = {
+    "SITE_HEADER": "Farmers Reward",
+    "SITE_URL": "/",
+    "SHOW_HISTORY": False,  # show/hide "History" button, default: True
+    "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
+}

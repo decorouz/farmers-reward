@@ -1,14 +1,13 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 
 from market.models import ContactPerson, Market, MarketProduct, PaymentMethod, Product
 
 # Register your models here.
 
-admin.site.register(ContactPerson)
-
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(ModelAdmin):
     list_display = ("name", "local_name", "unit")
     search_fields = ("name",)
     prepopulated_fields = {"slug": ("name", "local_name")}
@@ -18,7 +17,7 @@ admin.site.register(PaymentMethod)
 
 
 @admin.register(Market)
-class MarketAdmin(admin.ModelAdmin):
+class MarketAdmin(ModelAdmin):
     list_display = (
         "name",
         "custom_region",
@@ -30,6 +29,7 @@ class MarketAdmin(admin.ModelAdmin):
         "contact_person",
         "is_active",
     )
+    autocomplete_fields = ("region", "sub_region")
     prepopulated_fields = {"slug": ("name", "region", "sub_region")}
     search_fields = ("name__istartswith",)
 
@@ -54,7 +54,7 @@ class MarketAdmin(admin.ModelAdmin):
 
 
 @admin.register(MarketProduct)
-class MarketProductAdmin(admin.ModelAdmin):
+class MarketProductAdmin(ModelAdmin):
     autocomplete_fields = ("market", "product")
     list_display = (
         "market",
@@ -63,3 +63,9 @@ class MarketProductAdmin(admin.ModelAdmin):
         "mkt_date",
     )
     list_select_related = ("market", "product")
+
+
+@admin.register(ContactPerson)
+class ContactPersonAdmin(ModelAdmin):
+    list_display = ("first_name", "last_name", "phone_number", "email", "role")
+    list_filter = ("role",)

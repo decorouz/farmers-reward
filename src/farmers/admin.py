@@ -1,4 +1,5 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
 
 from farmers.models import (
     Badge,
@@ -6,17 +7,31 @@ from farmers.models import (
     CultivatedFieldHistory,
     Farmer,
     FarmersCooperative,
+    FarmersInputTransaction,
     FarmersMarketTransaction,
     FieldExtensionOfficer,
+    Harvest,
+    SoilProperty,
     UserBadge,
 )
 
+
 # Register your models here.
-admin.site.register(FarmersCooperative)
+@admin.register(FarmersCooperative)
+class FarmersCooperativeAdmin(ModelAdmin):
+    list_display = (
+        "name",
+        "chairman",
+        "phone_number",
+        "registration_number",
+        "location",
+        "blacklisted",
+        "verification_status",
+    )
 
 
 @admin.register(FieldExtensionOfficer)
-class FieldExtensionOfficerAdmin(admin.ModelAdmin):
+class FieldExtensionOfficerAdmin(ModelAdmin):
     list_display = (
         "first_name",
         "last_name",
@@ -31,12 +46,13 @@ class FieldExtensionOfficerAdmin(admin.ModelAdmin):
         "means_of_identification",
         "identification_number",
     )
+    autocomplete_fields = ("state_of_origin", "state_of_residence")
     list_select_related = ("state_of_origin", "state_of_residence")
     prepopulated_fields = {"slug": ("first_name", "last_name", "phone_number")}
 
 
 @admin.register(Farmer)
-class FarmerAdmin(admin.ModelAdmin):
+class FarmerAdmin(ModelAdmin):
     list_display = (
         "id",
         "first_name",
@@ -46,6 +62,7 @@ class FarmerAdmin(admin.ModelAdmin):
         "age",
         "education",
         "state_of_origin",
+        "lga",
         "state_of_residence",
         "phone_number",
         "cooperative_society",
@@ -53,15 +70,19 @@ class FarmerAdmin(admin.ModelAdmin):
         "category_type",
         "agricultural_activities",
         "farmsize",
-        "verification_status",
+        # "verification_status",
+        "confirmed_farmer_status",
+        "total_points",
         "verification_date",
     )
     list_select_related = (
         "state_of_origin",
         "state_of_residence",
         "cooperative_society",
+        "lga",
         "field_extension_officer",
     )
+    autocomplete_fields = ("state_of_origin", "state_of_residence", "lga")
     prepopulated_fields = {
         "slug": (
             "first_name",
@@ -72,8 +93,9 @@ class FarmerAdmin(admin.ModelAdmin):
 
 
 @admin.register(FarmersMarketTransaction)
-class FarmersMarketTransactionAdmin(admin.ModelAdmin):
+class FarmersMarketTransactionAdmin(ModelAdmin):
     list_display = (
+        "id",
         "farmer",
         "market",
         "produce",
@@ -85,8 +107,21 @@ class FarmersMarketTransactionAdmin(admin.ModelAdmin):
     list_filter = ("market__id", "farmer")
 
 
+@admin.register(FarmersInputTransaction)
+class FarmersInputTransactionAdmin(ModelAdmin):
+    list_display = (
+        "farmer",
+        "vendor",
+        "amount",
+        "receipt_identifier",
+        "redemption_date",
+        "points_earned",
+    )
+    list_select_related = ("farmer", "vendor")
+
+
 @admin.register(CultivatedField)
-class CultivatedFieldAdmin(admin.ModelAdmin):
+class CultivatedFieldAdmin(ModelAdmin):
     list_display = (
         "field_size",
         "soil_test",
@@ -102,7 +137,7 @@ class CultivatedFieldAdmin(admin.ModelAdmin):
 
 
 @admin.register(CultivatedFieldHistory)
-class CultivatedFieldHistoryAdmin(admin.ModelAdmin):
+class CultivatedFieldHistoryAdmin(ModelAdmin):
     list_display = (
         "farmer",
         "farming_system",
@@ -110,12 +145,8 @@ class CultivatedFieldHistoryAdmin(admin.ModelAdmin):
         "farming_system",
         "primary_crop_type",
         "secondary_crop_type",
-        "pri_crop_yield",
-        "sec_crop_yield",
         "pri_crop_planting_date",
         "sec_crop_planting_date",
-        "pri_crop_harvest_date",
-        "sec_crop_harvest_date",
         "fertilizer_use",
         "fertilizer_qty",
         "manure_compost_use",
@@ -127,7 +158,23 @@ class CultivatedFieldHistoryAdmin(admin.ModelAdmin):
     list_filter = ("primary_crop_type",)
 
 
-class SoilPropertyAdmin(admin.ModelAdmin):
+@admin.register(Harvest)
+class HarvestAdmin(ModelAdmin):
+    list_display = (
+        "pri_crop",
+        "sec_crop",
+        "field",
+        "pri_crop_harvest_date",
+        "sec_crop_harvest_date",
+        "pri_yield_amount",
+        "sec_yield_amount",
+    )
+
+    list_select_related = ("field", "sec_crop", "pri_crop")
+
+
+@admin.register(SoilProperty)
+class SoilPropertyAdmin(ModelAdmin):
     list_display = (
         "cultivated_field",
         "texture",
@@ -144,14 +191,14 @@ class SoilPropertyAdmin(admin.ModelAdmin):
 
 
 @admin.register(Badge)
-class BadgeAdmin(admin.ModelAdmin):
+class BadgeAdmin(ModelAdmin):
     list_display = ("name", "image_thumbnail", "points_required")
     list_filter = ("points_required",)
     list_filter = ("name",)
 
 
 @admin.register(UserBadge)
-class UserBadgeAdmin(admin.ModelAdmin):
+class UserBadgeAdmin(ModelAdmin):
     list_display = ("farmer", "badge", "earned_on")
     list_select_related = ("farmer", "badge")
     list_filter = ("earned_on", "badge", "farmer")
