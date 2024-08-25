@@ -19,6 +19,7 @@ django-cities-light = "*"
 gunicorn = "*"
 whitenoise = "*"
 psycopg2-binary = "==2.9.6"
+django-unfold = "*"
 
 [dev-packages]
 
