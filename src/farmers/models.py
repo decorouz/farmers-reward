@@ -1,13 +1,18 @@
 import uuid
 from datetime import date
+from tempfile import mktemp
 
 from cities_light.models import Country, Region, SubRegion
+from django.contrib import admin
+
+# from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.urls import reverse
 
 from core.models import TimeStampedModel
 from market.models import Market, Product
 from market.validators import validate_file_size
+from vendors.models import AgroVendor
 
 from .managers import FarmersMarketTransactionQuerySet
 
@@ -52,7 +57,7 @@ class PersonalInfo(TimeStampedModel):
     gender = models.CharField(max_length=1, choices=Gender.choices)
     date_of_birth = models.DateField(verbose_name=("Birthday"), null=True, blank=True)
     state_of_origin = models.ForeignKey(
-        SubRegion,
+        Region,
         on_delete=models.SET_NULL,
         related_name="+",
         null=True,
@@ -67,7 +72,6 @@ class PersonalInfo(TimeStampedModel):
     )
     education = models.IntegerField(choices=Education.choices)
     phone_number = models.CharField(max_length=13, unique=True, default="9****")
-    verification_status = models.BooleanField(default=False)
     slug = models.SlugField(max_length=255, unique=True)
     blacklisted = models.BooleanField(default=False)  # Can be appealed
     means_of_identification = models.CharField(
@@ -104,12 +108,6 @@ class PersonalInfo(TimeStampedModel):
     def __str__(self):
         return self.first_name + " " + self.last_name
 
-    # Update verification status upon verification of NIN
-    def update_verification_status(self):
-        """Upon verification of NIN and ID proof,
-        update the verification status"""
-        pass
-
     @property
     def age(self):
         today = date.today()
@@ -119,6 +117,9 @@ class PersonalInfo(TimeStampedModel):
 
 class FieldExtensionOfficer(PersonalInfo):
     email = models.EmailField(max_length=255, unique=True, blank=True, null=True)
+    affiliation = models.CharField(
+        max_length=255, blank=True, null=True
+    )  # School, Training institution, Certificate
 
     class Meta:
         constraints = [
@@ -144,12 +145,30 @@ class Farmer(PersonalInfo):
 
     class CategoryType(models.TextChoices):
         SMALL_HOLDER = "SH", "Smallholder"
-        SMALL_MEDIUM_HOLDER = "SMH", "Small to Medium Holder"
+        MEDIUM_LARGE_HOLDER = "MLH", "Commercial"
+
+    class FarmsizeCategory(models.TextChoices):
+        LESS_THAN_ONE_HA = (
+            "<1",
+            "<1 Hectare",
+        )
+        ONE_TO_THREE_HA = (
+            "1-3",
+            "1-3 Hectares",
+        )
+        THREE_TO_FIVE_HA = (
+            "3-5",
+            "3-5 Hectares",
+        )
+        ABOVE_FIVE_HA = (
+            ">5",
+            ">5 Hectares",
+        )
 
     category_type = models.CharField(
         max_length=3,
         choices=CategoryType.choices,
-        default=CategoryType.SMALL_MEDIUM_HOLDER,
+        default=CategoryType.MEDIUM_LARGE_HOLDER,
     )
     cooperative_society = models.ForeignKey(
         FarmersCooperative,
@@ -166,12 +185,23 @@ class Farmer(PersonalInfo):
         null=True,
         blank=True,
     )
-
+    lga = models.ForeignKey(
+        SubRegion,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
     agricultural_activities = models.IntegerField(
         choices=AgriculturalActivities.choices,
         default=AgriculturalActivities.CROP_PRODUCER,
     )
-    farmsize = models.DecimalField(max_digits=10, decimal_places=2)
+    farmsize = models.CharField(
+        max_length=3,
+        choices=FarmsizeCategory.choices,
+        default=FarmsizeCategory.ONE_TO_THREE_HA,
+    )
+    # verification_status = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
@@ -184,18 +214,43 @@ class Farmer(PersonalInfo):
     def __str__(self):
         return f"{self.first_name}, {self.last_name}"
 
-    # Generate a unique identification number for the farmer
-    def generate_farmer_id(self):
-        """Upon registration, generate a unique
-        identification number for the farmer"""
-        pass
+    # def update_verification_status(self):
+    #     """Two point of farmers verification"""
+    #     has_earned_mkt_transaction_pts = FarmersMarketTransaction.objects.filter(
+    #         farmer=self
+    #     ).exists()
+    #     has_input_purchase_pts = FarmersInputTransaction.objects.filter(
+    #         farmer=self
+    #     ).exists()
+    #     if has_earned_mkt_transaction_pts and has_input_purchase_pts:
+    #         self.verification_status = True
+    #     else:
+    #         self.verification_status = False
+
+    #     self.save()
+    @admin.display(boolean=True, description="Purchased Input and Sold Produce")
+    def confirmed_farmer_status(self):
+        has_earned_mkt_transaction_pts = self.transactions.exists()
+        has_input_purchase_pts = self.input_purchases.exists()
+        return has_earned_mkt_transaction_pts and has_input_purchase_pts
+
+    @admin.display(description="Total Points")
+    def total_points(self):
+        market_points = (
+            self.transactions.aggregate(total=models.Sum("points_earned"))["total"] or 0
+        )
+        input_points = (
+            self.input_purchases.aggregate(total=models.Sum("points_earned"))["total"]
+            or 0
+        )
+        return market_points + input_points
 
     def get_absolute_url(self):
         """Returns the URL to access a detail record for this farmer"""
         return reverse("farmer_detail", kwargs={"slug": self.slug})
 
 
-class FarmersMarketTransaction(TimeStampedModel):
+class FarmersMarketTransaction(models.Model):
     """A model to track the transactions between a farmer and a market"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -211,19 +266,65 @@ class FarmersMarketTransaction(TimeStampedModel):
     points_earned = models.IntegerField(default=0, editable=False)
     objects = FarmersMarketTransactionQuerySet.as_manager()
 
-    def __str__(self):
-        return f"{self.id}--{self.market.id}--{self.farmer.id}"
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["produce", "farmer", "market", "transaction_date"],
+                name="unique_mkt_transaction",
+                violation_error_message="Transaction already exist",
+            )
+        ]
 
-    def save(self, *args, **kwargs):
-        self.points_earned = self.calculate_earned_points()
-        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"{self.id}"
 
     def calculate_earned_points(self):
         """Calculate the points earned by the quantity"""
         return int(self.quantity)
 
+    def save(self, *args, **kwargs):
+        self.points_earned = self.calculate_earned_points()
+        super().save(*args, **kwargs)
+
+
+class FarmersInputTransaction(TimeStampedModel):
+    farmer = models.ForeignKey(
+        Farmer, on_delete=models.CASCADE, related_name="input_purchases"
+    )
+    vendor = models.ForeignKey(
+        AgroVendor, on_delete=models.CASCADE, related_name="input_purchases"
+    )
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    receipt_number = models.CharField(max_length=255)
+    redemption_date = models.DateField()
+    receipt_identifier = models.CharField(max_length=255, editable=False, blank=True)
+    points_earned = models.IntegerField(default=0, editable=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["receipt_number", "vendor"],
+                name="unique_receipt_identifier",
+                violation_error_message="Receipt already exist",
+            )
+        ]
+
+    def calculate_earned_points(self):
+        """Calculate the points earned by the purchase amount"""
+        return round(int(self.amount / 1000))
+
+    def save(self, *args, **kwargs):
+        # generate a unique identifier for the receipt
+        self.receipt_identifier = f"{self.vendor.unique_id}-{self.receipt_number}"
+        self.points_earned = self.calculate_earned_points()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.receipt_identifier}"
+
 
 class CultivatedField(TimeStampedModel):
+    # area = gis_models.PolygonField(null=True, blank=True)
     field_size = models.FloatField(null=True, blank=True)
     soil_test = models.BooleanField(default=False)
     town = models.CharField(max_length=255)
@@ -234,7 +335,6 @@ class CultivatedField(TimeStampedModel):
     country = models.ForeignKey(
         Country, on_delete=models.PROTECT, null=True, blank=True
     )
-
     latitude = models.FloatField(null=True, blank=True)
     logitude = models.FloatField(null=True, blank=True)
     slug = models.SlugField(unique=True)
@@ -252,6 +352,19 @@ class CultivatedField(TimeStampedModel):
 
     def get_absolute_url(self):
         return reverse("cultivatedfield_detail", kwargs={"slug": self.slug})
+
+
+# class GeoTag(gis_models.Model):
+#     """Geotag farmer by agricultural land"""
+
+#     pass
+
+
+class Crop(Product):
+    variety = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.name}-{self.variety}"
 
 
 class CultivatedFieldHistory(TimeStampedModel):
@@ -281,14 +394,6 @@ class CultivatedFieldHistory(TimeStampedModel):
     secondary_crop_type = models.CharField(max_length=50, null=True, blank=True)
     pri_crop_planting_date = models.DateField(null=True, blank=True)
     sec_crop_planting_date = models.DateField(null=True, blank=True)
-    pri_crop_harvest_date = models.DateField(null=True, blank=True)
-    sec_crop_harvest_date = models.DateField(null=True, blank=True)
-    pri_crop_yield = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
-    sec_crop_yield = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
-    )
     fertilizer_use = models.BooleanField(default=False)
     fertilizer_qty = models.FloatField(null=True, blank=True)
     manure_compost_use = models.BooleanField(default=False)
@@ -313,6 +418,27 @@ class CultivatedFieldHistory(TimeStampedModel):
 
     def calculate_fertilizer_rate(self):
         pass
+
+
+class Harvest(models.Model):
+    pri_crop = models.OneToOneField(
+        Crop, on_delete=models.CASCADE, related_name="pri_harvest"
+    )
+    sec_crop = models.OneToOneField(
+        Crop,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+    field = models.OneToOneField(CultivatedField, on_delete=models.CASCADE)
+    pri_crop_harvest_date = models.DateField(null=True, blank=True)
+    sec_crop_harvest_date = models.DateField(null=True, blank=True)
+    pri_yield_amount = models.FloatField()
+    sec_yield_amount = models.FloatField()
+    notes = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"Harvest for {self.pri_crop}"
 
 
 class SoilProperty(models.Model):
@@ -347,7 +473,7 @@ class SoilProperty(models.Model):
 
 class Badge(TimeStampedModel):
     class BadgeType(models.TextChoices):
-        MEMBERSHIP_BRONZE = "B", "Bronze"
+        MEMBERSHIP_BRONZE = "B", "Bronze"  # KYC complete. 10
         MEMBERSHIP_SILVER = "S", "Silver"
         MEMBERSHIP_GOLD = "G", "Gold"
 
@@ -367,6 +493,8 @@ class Badge(TimeStampedModel):
 
 # UserBadge Model
 class UserBadge(models.Model):
+    """Assign a badge to a farmer upon reaching the required points"""
+
     farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE)
     badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
     earned_on = models.DateTimeField(auto_now_add=True)

@@ -17,7 +17,7 @@ from subsidy.models import (  # Agrochemical,; Fertilizer,; Mechanization,; Seed
 @receiver(pre_save, sender=SubsidizedItem)
 def update_input_price_history(sender, instance, *args, **kwargs):
     """Create a record of price changes in the input price history table."""
-    print("See something here", instance)
+
     if instance.pk:
         old_instance = sender.objects.get(pk=instance.pk)
         if old_instance.current_price != instance.current_price:
@@ -31,6 +31,7 @@ def update_input_price_history(sender, instance, *args, **kwargs):
 
 @receiver(post_save, sender=SubsidyInstance)
 def update_subsidy_beneficiaries(sender, instance, *args, **kwargs):
+    """Update the number of beneficiaries in the subsidy program."""
     if (
         kwargs["created"]
         and not SubsidyInstance.objects.filter(

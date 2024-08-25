@@ -54,7 +54,7 @@ class ContactPerson(TimeStampedModel):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=255)
-    email = models.EmailField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True, unique=True)
     role = models.CharField(max_length=255, choices=ROLE, default="extension_agent")
     is_active = models.BooleanField(default=True)
 
@@ -106,28 +106,40 @@ class Product(TimeStampedModel):
 
     class ProductChoices(models.TextChoices):
         WHEAT = "WHEAT", "Wheat"
-        MILLED_RICE = "MILLED RICE", "Milled Rice"
+        MILLET = "MILLET", "Millet"
+        GINGER = "GINGER", "Ginger"
         PADDY_RICE = "PADDY RICE", "Paddy Rice"
         BROWN_COWPEA = "BROWN_COWPEA", "Brown Cowpea"
         WHITE_COWPEA = "WHITE COWPEA", "White Cowpea"
         WHITE_MAIZE = "WHITE MAIZE", "White Maize"
         YELLOW_MAIZE = "YELLOW MAIZE", "Yellow Maize"
-        SOYBEAN = "SOYBEAN", "Soybean"
         WHITE_SORGHUM = "WHITE SORGHUM", "White Sorghum"
         YELLOW_SORGHUM = "YELLOW_SORGHUM", "Yellow Sorghum"
-        SWEET_POTATOES = "SWEET POTATOES", "Sweet Potatoes"
-        IRISH_POTATOES = "IRISH POTATOES", "Irish Potatoes"
+        SESAME = "SESAME", "Sesame"
+        GROUNDNUT = "GROUNDNUT", "Groundnut"
+        SOYBEAN = "SOYBEAN", "Soybean"
+        IRISH_POTATO = "IRISH POTATO", "Irish Potatoes"
+        SWEET_POTATO = "SWEET POTATO", "Sweet Potatoes"
+        YAM = "YAM", "Yam"
+        CASSAVA = "CASSAVA", "Cassava"
         ONION = "ONION", "Onion"
-        TOMATO = "TOMATO", "Tomato"
+        OKRA = "OKRA", "Okra"
+        TOMATO = "TOMATO", "Fresh Tomato"
+        PEPPER = "PEPPER", "Fresh Pepper"
         DRY_TOMATOES = "DRIED TOMATOES", "Dry Tomatoes"
-        PEPPER = "PEPPER", "Pepper"
+        DRIED_PEPPER = "DRIED PEPPER", "Dry Pepper"
+        MILLED_RICE = "MILLED RICE", "Milled Rice"
+        GARRI = "GARRI", "Garri"
 
     name = models.CharField(max_length=50, choices=ProductChoices.choices, unique=True)
     description = models.TextField(blank=True, null=True)
     slug = models.SlugField(unique=True)
     local_name = models.CharField(max_length=50, blank=True, null=True)
     unit = models.IntegerField(
-        choices=UnitChoices.choices, default=UnitChoices.KG, blank=True
+        choices=UnitChoices.choices,
+        default=UnitChoices.KG,
+        blank=True,
+        null=True,
     )
 
     class Meta:

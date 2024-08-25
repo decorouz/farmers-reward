@@ -172,12 +172,12 @@ class SubsidyProgram(TimeStampedModel):
 
     title = models.CharField(max_length=255)
     objective = models.CharField(max_length=255, blank=True, null=True)
-    slug = models.SlugField(unique=True)
-    source_of_funding = models.CharField(max_length=255, blank=True, null=True)
+    slug = models.SlugField(unique=True, max_length=255)
+    sponsor_name = models.CharField(max_length=255, blank=True, null=True)
     program_director = models.CharField(max_length=255, blank=True, null=True)
     legislation = models.CharField(max_length=255, blank=True, null=True)
     number_of_beneficiaries = models.SmallIntegerField(default=0)
-    sponsor_name = models.CharField(
+    sponsor_type = models.CharField(
         max_length=10,
         choices=Sponsor.choices,
     )
@@ -273,6 +273,8 @@ class SubsidyRate(TimeStampedModel):
 class SubsidyInstance(TimeStampedModel):
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     redemption_date = models.DateField(auto_now_add=True)
+    # Name of the redemption center.
+    redemption_location = models.CharField(max_length=255, null=True, blank=True)
     farmer = models.ForeignKey(
         Farmer, related_name="subsidy_intance", on_delete=models.DO_NOTHING
     )
