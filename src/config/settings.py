@@ -5,7 +5,6 @@ from config.env import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Gmail Smtp configuration
 
 # default backend
@@ -37,7 +36,12 @@ if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config("DJANGO_DEBUG", cast=bool)
+
+ENVIRONMENT = config("ENVIRONMENT", default="development")
+if ENVIRONMENT == "development":
+    DEBUG = True
+else:
+    DEBUG = False
 
 
 ALLOWED_HOSTS = [
@@ -64,6 +68,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     "django_extensions",
     "cities_light",
+    "admin_honeypot",
     # User defined apps
     "core",
     "farmers",
@@ -117,18 +122,17 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
 # from .db import *  # noqa
-# if not DEBUG:
 DATABASE_URL = config("DATABASE_URL", default=None)
 
-if DATABASE_URL is not None:
+if ENVIRONMENT == "development":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+else:
     import dj_database_url
 
     DATABASE_URL = str(DATABASE_URL)
