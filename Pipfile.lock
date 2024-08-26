@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "78c9629ea2fbf83ae3875ca72fbda9c82f6165c2146d238568fc39c90cb86acf"
+            "sha256": "bb0835c5c33aaf29a84f7b5b7ba2341c621a58a729810e45afd86dde0938786b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -182,6 +182,14 @@
             "markers": "python_version >= '3.10'",
             "version": "==5.1"
         },
+        "django-admin-honeypot-updated-2021": {
+            "hashes": [
+                "sha256:ab256a7cfe445db4694ff70b065d7e9bbf641a2c2b892ae1c9c4f88e187278ca"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.6'",
+            "version": "==1.2.0"
+        },
         "django-autoslug": {
             "hashes": [
                 "sha256:79f88e9433c1c88d8d3f2bec60d65ca98bffaff6c072b78aa5fd99d0e84a13dd",
@@ -215,14 +223,22 @@
             "markers": "python_version >= '3.6'",
             "version": "==3.2.3"
         },
+        "django-ipware": {
+            "hashes": [
+                "sha256:d9ec43d2bf7cdf216fed8d494a084deb5761a54860a53b2e74346a4f384cff47",
+                "sha256:db16bbee920f661ae7f678e4270460c85850f03c6761a4eaeb489bdc91f64709"
+            ],
+            "markers": "python_version >= '3.8'",
+            "version": "==7.0.1"
+        },
         "django-unfold": {
             "hashes": [
-                "sha256:5e4307e913fcae2b54a2d094cc3dbf5a46be6f239cdc55d7e19172aa181b1804",
-                "sha256:91db14952d62d592df3996034d1be0162fda833097c91b206f251c3ded461719"
+                "sha256:726f4167423b32b9e8c561bd09237745347b7ba560ce365a9b8f9f0827945257",
+                "sha256:fc5c8a81fc0b952e1752d015e934542661034a25bee0b208b1f1c306b2895a32"
             ],
             "index": "pypi",
             "markers": "python_version >= '3.8'",
-            "version": "==0.36.0"
+            "version": "==0.37.0"
         },
         "djhtml": {
             "hashes": [
@@ -485,6 +501,14 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==1.0.1"
+        },
+        "python-ipware": {
+            "hashes": [
+                "sha256:9117b1c4dddcb5d5ca49e6a9617de2fc66aec2ef35394563ac4eecabdf58c062",
+                "sha256:fc936e6e7ec9fcc107f9315df40658f468ac72f739482a707181742882e36b60"
+            ],
+            "markers": "python_version >= '3.7'",
+            "version": "==3.0.0"
         },
         "python-utils": {
             "hashes": [
