@@ -58,7 +58,7 @@ ENV ENVIRONMENT=${ENVIRONMENT}
 # run any other commands that do not need the database
 # such as:
 # RUN pipenv run python manage.py vendor_pull
-RUN pipenv run python manage.py collectstatic --noinput
+# RUN pipenv run python manage.py collectstatic --noinput
 # RUN pipenv run python manage.py collectstatic --noinput
 
 # set the Django default project name
