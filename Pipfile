@@ -10,8 +10,6 @@ black = "*"
 djhtml = "*"
 django-extensions = "*"
 pillow = "*"
-geopy = "*"
-googlemaps = "*"
 python-dotenv = "*"
 dj-database-url = "*"
 python-decouple = "*"
@@ -23,6 +21,7 @@ django-unfold = "*"
 django-admin-honeypot-updated-2021 = "*"
 
 [dev-packages]
+pip-tools = "*"
 
 [requires]
 python_version = "3.11"
