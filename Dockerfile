@@ -50,12 +50,11 @@ COPY ./src /code
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 
-ARG DJANGO_DEBUG=0
-ENV DJANGO_DEBUG=${DJANGO_DEBUG}
+# ARG DJANGO_DEBUG=0
+# ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
 ARG ENVIRONMENT="production"
 ENV ENVIRONMENT=${ENVIRONMENT}
-
 # run any other commands that do not need the database
 # such as:
 # RUN pipenv run python manage.py vendor_pull
