@@ -1,4 +1,5 @@
 from pathlib import Path
+from re import DEBUG
 
 from config.env import config
 
@@ -37,7 +38,8 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ENVIRONMENT = config("ENVIRONMENT", default="development")
+ENVIRONMENT = config("ENVIRONMENT")
+
 if ENVIRONMENT == "development":
     DEBUG = True
 else:
@@ -45,14 +47,18 @@ else:
 
 
 ALLOWED_HOSTS = [
-    ".railway.app",
-]  # https://farmers-reward.railway.app
+    # ".railway.app",
+    "*"
+]
 
-if DEBUG:
-    ALLOWED_HOSTS += ["127.0.0.1", "localhost"]
+INTERNAL_IPS = [
+    # ...
+    "127.0.0.1",
+    "localhost:8000",
+]
 
 
-CSRF_TRUSTED_ORIGINS = ["https://farmers-reward-production.up.railway.app"]
+# CSRF_TRUSTED_ORIGINS = ["https://farmers-reward-production.up.railway.app"]
 
 # Application definition
 
@@ -91,13 +97,6 @@ MIDDLEWARE = [
 ]
 
 
-INTERNAL_IPS = [
-    # ...
-    "127.0.0.1",
-    # ...
-]
-
-
 ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
@@ -125,7 +124,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # from .db import *  # noqa
 DATABASE_URL = config("DATABASE_URL", default=None)
 
-if ENVIRONMENT == "development":
+if ENVIRONMENT == "production":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -180,22 +179,17 @@ USE_TZ = True
 
 
 STATIC_URL = "static/"
-STATICFILES_BASE_DIR = BASE_DIR / "staticfiles"
-STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
-STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / "vendors"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# source(s) for python manage.py collectstatic
-STATICFILES_DIRS = [STATICFILES_BASE_DIR]
+MEDIA_URL = "media/"
 
-# output for python manage.py collectstatic
-# local cdn
-STATIC_ROOT = BASE_DIR.parent / "local-cdn"
 # WhiteNoise
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+# STORAGES = {
+#     "staticfiles": {
+#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+#     },
+# }
 
 
 # Base url to serve media files
