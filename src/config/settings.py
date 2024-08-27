@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third party apps
+    "cloudinary_storage",
+    "cloudinary",
     "debug_toolbar",
     "django_extensions",
     "cities_light",
@@ -166,6 +168,20 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
+
+
+if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+else:
+    MEDIA_ROOT = BASE_DIR / "media"
+
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": config("CLOUDIDARY_API_KEY"),
+    "API_SECRET": config("CLOUDIDARY_SECRET_KEY"),
+}
+
 
 # WhiteNoise
 # STORAGES = {
