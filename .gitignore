@@ -85,21 +85,15 @@ target/
 __pycache__/
 local_settings.py
 
-.env
-db.sqlite3
+
 
 # ignore vendor files
-src/staticfiles
-
+# src/staticfiles/
+.env
+db.sqlite3
 remove_migrations.py
-node_modules
-local-cdn
-z_utils.py
-media
+node/
+media/
+static/
 .docs
-
-
-#pipenv
-
-Pipfile.lock
-Pipfile
+Dockerfile

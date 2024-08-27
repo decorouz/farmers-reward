@@ -1,7 +1,6 @@
 from cities_light.models import Country, Region, SubRegion
 from django.db import models
 from django.urls import reverse
-from geopy.geocoders import Nominatim
 
 from core.models import TimeStampedModel
 
@@ -23,18 +22,18 @@ class Address(TimeStampedModel):
     latitude = models.FloatField(max_length=9, blank=True, null=True)
     longitude = models.FloatField(max_length=9, blank=True, null=True)
 
-    def save(self, *args, **kwargs):
-        if self.longitude and self.latitude:
-            geolocator = Nominatim(user_agent="market_app")
-            detailed_location = geolocator.reverse(
-                (self.latitude, self.longitude), exactly_one=True
-            )
-            if detailed_location:
-                # Reverse geocode to get more detailed address information
-                address = detailed_location.raw.get("address", {})
-                self.display_address = detailed_location.raw["display_name"]
-                self.town = address.get("town", "") or address.get("village", "")
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if self.longitude and self.latitude:
+    #         geolocator = Nominatim(user_agent="market_app")
+    #         detailed_location = geolocator.reverse(
+    #             (self.latitude, self.longitude), exactly_one=True
+    #         )
+    #         if detailed_location:
+    #             # Reverse geocode to get more detailed address information
+    #             address = detailed_location.raw.get("address", {})
+    #             self.display_address = detailed_location.raw["display_name"]
+    #             self.town = address.get("town", "") or address.get("village", "")
+    #     super().save(*args, **kwargs)
 
     class Meta:
         abstract = True

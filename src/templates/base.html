@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,8 +6,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    {% include "base/css.html" %}
+    <link rel="stylesheet" href="{% if debug %}{% static 'css/style.css' %}{% else %}{% static 'css/style.min.css' %}{% endif %}">
     
     <title>{% block head_title %}Farmers Reward{% endblock head_title %}</title>
 
@@ -16,8 +16,8 @@
 
     {% include "base/navbar.html" %}
 
-    <section class="h-screen flex-grow bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div class="min-h-screen flex flex-col">
+    <section class="h-screen  dark:bg-gray-900 flex">
+        <div class="flex pt-[12rem] w-full flex-col">
             {% block content %}
             {% endblock content %}
         </div>
@@ -27,7 +27,7 @@
     
 
     {% include "base/footer.html" %}
-    {% include "base/js.html" %}
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
      
 </body>
 
