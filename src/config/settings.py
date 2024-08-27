@@ -1,7 +1,10 @@
+from email.policy import default
 from pathlib import Path
-from re import DEBUG
 
 from config.env import config
+
+POSTGRES_LOCALLY = False  # when I want to use postgres locally
+ENVIRONMENT = config("ENVIRONMENT", default="development")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,7 +18,6 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ENVIRONMENT = config("ENVIRONMENT")
 
 if ENVIRONMENT == "development":
     DEBUG = True
@@ -114,7 +116,6 @@ DATABASES = {
 DATABASE_URL = config("DATABASE_URL", default=None)
 
 
-POSTGRES_LOCALLY = False  # when I want to use postgres locally
 if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
     import dj_database_url
 
@@ -214,7 +215,7 @@ AUTH_USER_MODEL = "core.User"
 # Gmail Smtp configuration
 
 # default backend
-if ENVIRONMENT == "production":
+if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = config("EMAIL_HOST", cast=str, default=None)
     EMAIL_PORT = config("EMAIL_PORT", cast=str, default="587")  # Recommended
