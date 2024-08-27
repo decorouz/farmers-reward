@@ -26,8 +26,12 @@ else:
 
 
 ALLOWED_HOSTS = [
-    # ".railway.app",
-    "*"
+    config("RENDER_EXTERNAL_HOSTNAME"),
+    config("RAILWAY_EXTERNAL_HOSTNAME"),
+    "farmersreward.co",
+    "www.farmersreward.co",
+    "127.0.0.1",
+    "localhost:8000",
 ]
 
 INTERNAL_IPS = [
@@ -37,7 +41,12 @@ INTERNAL_IPS = [
 ]
 
 
-# CSRF_TRUSTED_ORIGINS = ["https://farmers-reward-production.up.railway.app"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://farmers-reward-production.up.railway.app",
+    "https://*.onrender.com",
+    "https://*farmersreward.co",
+    "https://farmersreward.co",
+]
 
 # Application definition
 
@@ -225,7 +234,7 @@ if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
         "EMAIL_USE_TLS", cast=bool, default=True
     )  # Use EMAIL_PORT 587 for TLS
     # EMAIL_USE_SSL = config("EMAIL_USE_TLS", cast=bool, default=False)  # EUse MAIL_PORT 465 for SSL
-    DEFAULT_FROM_EMAIL = f'Awesome {config("ADMIN_USER_EMAIL")}'
+    DEFAULT_FROM_EMAIL = f'FarmersReward {config("ADMIN_USER_EMAIL")}'
     ACCOUNT_EMAIL_SUBJECT_PREFIX = ""
 
 else:
