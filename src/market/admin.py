@@ -67,5 +67,10 @@ class MarketProductAdmin(ModelAdmin):
 
 @admin.register(ContactPerson)
 class ContactPersonAdmin(ModelAdmin):
-    list_display = ("first_name", "last_name", "phone_number", "email", "role")
+    list_display = (
+        "fullname",
+        "phone",
+        "email",
+        "role",
+    )
     list_filter = ("role",)

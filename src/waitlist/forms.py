@@ -1,9 +1,9 @@
 from django import forms
 
-from .models import WaitlistEntry
+from .models import Contact
 
 
 class WaitlistForm(forms.ModelForm):
     class Meta:
-        model = WaitlistEntry
+        model = Contact
         fields = ["name", "email"]

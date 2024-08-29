@@ -21,6 +21,7 @@ django-unfold = "*"
 django-admin-honeypot-updated-2021 = "*"
 django-cloudinary-storage = "*"
 django-resized = "*"
+django-phonenumber-field = {extras = ["phonenumberslite"], version = "*"}
 
 [dev-packages]
 pip-tools = "*"

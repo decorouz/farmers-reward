@@ -22,7 +22,7 @@ class FarmersCooperativeAdmin(ModelAdmin):
     list_display = (
         "name",
         "chairman",
-        "phone_number",
+        "phone",
         "registration_number",
         "location",
         "blacklisted",
@@ -36,7 +36,7 @@ class FieldExtensionOfficerAdmin(ModelAdmin):
         "first_name",
         "last_name",
         "email",
-        "phone_number",
+        "phone",
         "gender",
         "date_of_birth",
         "age",
@@ -48,7 +48,7 @@ class FieldExtensionOfficerAdmin(ModelAdmin):
     )
     autocomplete_fields = ("state_of_origin", "state_of_residence")
     list_select_related = ("state_of_origin", "state_of_residence")
-    prepopulated_fields = {"slug": ("first_name", "last_name", "phone_number")}
+    prepopulated_fields = {"slug": ("first_name", "last_name", "phone")}
 
 
 @admin.register(Farmer)
@@ -64,7 +64,7 @@ class FarmerAdmin(ModelAdmin):
         "state_of_origin",
         "lga",
         "state_of_residence",
-        "phone_number",
+        "phone",
         "cooperative_society",
         "field_extension_officer",
         "category_type",
@@ -87,7 +87,7 @@ class FarmerAdmin(ModelAdmin):
         "slug": (
             "first_name",
             "last_name",
-            "phone_number",
+            "phone",
         )
     }
 
@@ -114,7 +114,7 @@ class FarmersInputTransactionAdmin(ModelAdmin):
         "vendor",
         "amount",
         "receipt_identifier",
-        "redemption_date",
+        "receipt_redemption_date",
         "points_earned",
     )
     list_select_related = ("farmer", "vendor")

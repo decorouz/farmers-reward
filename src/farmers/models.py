@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.db import models
 from django.urls import reverse
 
-from core.models import TimeStampedModel
+from core.models import TimeStampedPhoneModel
 from market.models import Market, Product
 from market.validators import validate_file_size
 from vendors.models import AgroVendor
@@ -17,10 +17,9 @@ from vendors.models import AgroVendor
 from .managers import FarmersMarketTransactionQuerySet
 
 
-class FarmersCooperative(TimeStampedModel):
+class FarmersCooperative(TimeStampedPhoneModel):
     name = models.CharField(max_length=255)
     chairman = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=13, unique=True)
     location = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     registeration_date = models.DateField(auto_now_add=True)
@@ -33,7 +32,7 @@ class FarmersCooperative(TimeStampedModel):
         return self.name
 
 
-class PersonalInfo(TimeStampedModel):
+class PersonalInfo(TimeStampedPhoneModel):
     class IdentificationType(models.TextChoices):
         NATIONAL_ID = "ND", "National ID"
         PASSPORT = "IP", "International Passport"
@@ -71,7 +70,6 @@ class PersonalInfo(TimeStampedModel):
         blank=True,
     )
     education = models.IntegerField(choices=Education.choices)
-    phone_number = models.CharField(max_length=13, unique=True, default="9****")
     slug = models.SlugField(max_length=255, unique=True)
     blacklisted = models.BooleanField(default=False)  # Can be appealed
     means_of_identification = models.CharField(
@@ -214,20 +212,6 @@ class Farmer(PersonalInfo):
     def __str__(self):
         return f"{self.first_name}, {self.last_name}"
 
-    # def update_verification_status(self):
-    #     """Two point of farmers verification"""
-    #     has_earned_mkt_transaction_pts = FarmersMarketTransaction.objects.filter(
-    #         farmer=self
-    #     ).exists()
-    #     has_input_purchase_pts = FarmersInputTransaction.objects.filter(
-    #         farmer=self
-    #     ).exists()
-    #     if has_earned_mkt_transaction_pts and has_input_purchase_pts:
-    #         self.verification_status = True
-    #     else:
-    #         self.verification_status = False
-
-    #     self.save()
     @admin.display(boolean=True, description="Purchased Input and Sold Produce")
     def confirmed_farmer_status(self):
         has_earned_mkt_transaction_pts = self.transactions.exists()
@@ -262,7 +246,7 @@ class FarmersMarketTransaction(models.Model):
     )
     produce = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveSmallIntegerField()
-    transaction_date = models.DateField(auto_now=True)
+    transaction_date = models.DateField(auto_now_add=True)
     points_earned = models.IntegerField(default=0, editable=False)
     objects = FarmersMarketTransactionQuerySet.as_manager()
 
@@ -287,7 +271,7 @@ class FarmersMarketTransaction(models.Model):
         super().save(*args, **kwargs)
 
 
-class FarmersInputTransaction(TimeStampedModel):
+class FarmersInputTransaction(models.Model):
     farmer = models.ForeignKey(
         Farmer, on_delete=models.CASCADE, related_name="input_purchases"
     )
@@ -296,7 +280,7 @@ class FarmersInputTransaction(TimeStampedModel):
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     receipt_number = models.CharField(max_length=255)
-    redemption_date = models.DateField()
+    receipt_redemption_date = models.DateField(auto_now_add=True)
     receipt_identifier = models.CharField(max_length=255, editable=False, blank=True)
     points_earned = models.IntegerField(default=0, editable=False)
 
@@ -323,7 +307,7 @@ class FarmersInputTransaction(TimeStampedModel):
         return f"{self.receipt_identifier}"
 
 
-class CultivatedField(TimeStampedModel):
+class CultivatedField(models.Model):
     # area = gis_models.PolygonField(null=True, blank=True)
     field_size = models.FloatField(null=True, blank=True)
     soil_test = models.BooleanField(default=False)
@@ -367,7 +351,7 @@ class Crop(Product):
         return f"{self.name}-{self.variety}"
 
 
-class CultivatedFieldHistory(TimeStampedModel):
+class CultivatedFieldHistory(models.Model):
     """Keep track of the history of a cultivated field"""
 
     class FarmingPractice(models.TextChoices):
@@ -400,11 +384,14 @@ class CultivatedFieldHistory(TimeStampedModel):
     average_ridge_weed_biomass = models.FloatField(null=True, blank=True)
     striga = models.BooleanField(default=False)
     row_spacing = models.FloatField(null=True, blank=True)
+    created_on = models.DateField(auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["cultivated_field", "created_on"],
+                fields=[
+                    "cultivated_field",
+                ],
                 name="unique_cultivated_field_history",
             )
         ]
@@ -471,7 +458,7 @@ class SoilProperty(models.Model):
         return f"{self.cultivated_field} {self.soil_test_date}"
 
 
-class Badge(TimeStampedModel):
+class Badge(models.Model):
     class BadgeType(models.TextChoices):
         MEMBERSHIP_BRONZE = "B", "Bronze"  # KYC complete. 10
         MEMBERSHIP_SILVER = "S", "Silver"

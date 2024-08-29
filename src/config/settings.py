@@ -1,4 +1,3 @@
-from email.policy import default
 from pathlib import Path
 
 from config.env import config
@@ -59,6 +58,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third party apps
+    "phonenumber_field",
     "cloudinary_storage",
     "cloudinary",
     "debug_toolbar",
@@ -243,8 +243,12 @@ else:
 
 # Admin settings.py
 UNFOLD = {
+    "SITE_TITLE": None,
     "SITE_HEADER": "Farmers Reward",
     "SITE_URL": "/",
     "SHOW_HISTORY": False,  # show/hide "History" button, default: True
     "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
 }
+
+# Handing phone number
+PHONENUMBER_DEFAULT_REGION = "NG"

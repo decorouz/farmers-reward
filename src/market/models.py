@@ -1,15 +1,16 @@
 from cities_light.models import Country, Region, SubRegion
+from django.contrib import admin
 from django.db import models
 from django.urls import reverse
 
-from core.models import TimeStampedModel
+from core.models import TimeStampedPhoneModel
 
 from .validators import validate_file_size
 
 # Each farmer is assigned to an field extension officer
 
 
-class Address(TimeStampedModel):
+class Address(models.Model):
     display_address = models.CharField(max_length=255, null=True, blank=True)
     town = models.CharField(max_length=255, blank=True, null=True)
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True)
@@ -22,19 +23,6 @@ class Address(TimeStampedModel):
     latitude = models.FloatField(max_length=9, blank=True, null=True)
     longitude = models.FloatField(max_length=9, blank=True, null=True)
 
-    # def save(self, *args, **kwargs):
-    #     if self.longitude and self.latitude:
-    #         geolocator = Nominatim(user_agent="market_app")
-    #         detailed_location = geolocator.reverse(
-    #             (self.latitude, self.longitude), exactly_one=True
-    #         )
-    #         if detailed_location:
-    #             # Reverse geocode to get more detailed address information
-    #             address = detailed_location.raw.get("address", {})
-    #             self.display_address = detailed_location.raw["display_name"]
-    #             self.town = address.get("town", "") or address.get("village", "")
-    #     super().save(*args, **kwargs)
-
     class Meta:
         abstract = True
         constraints = [
@@ -45,31 +33,34 @@ class Address(TimeStampedModel):
         ]
 
 
-class ContactPerson(TimeStampedModel):
+class ContactPerson(TimeStampedPhoneModel):
     ROLE = [
         ("extension_agent", "Extension Agent"),
         ("chairman", "Chairman"),
     ]
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=255)
-    email = models.EmailField(blank=True, null=True, unique=True)
+    email = models.EmailField(blank=True, null=True)
     role = models.CharField(max_length=255, choices=ROLE, default="extension_agent")
     is_active = models.BooleanField(default=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["phone_number", "email"],
+                fields=["phone", "email"],
                 name="unique_contact_person",
             )
         ]
+
+    @admin.display(description="full name")
+    def fullname(self):
+        return f"{self.first_name} {self.last_name}"
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
 
-class PaymentMethod(TimeStampedModel):
+class PaymentMethod(models.Model):
     class PaymentMethodChoices(models.IntegerChoices):
         CASH = 1, "Cash"
         CREDIT_CARD = 2, "Credit Card"
@@ -96,7 +87,7 @@ class PaymentMethod(TimeStampedModel):
         return self.get_name_display()
 
 
-class Product(TimeStampedModel):
+class Product(models.Model):
     class UnitChoices(models.IntegerChoices):
         KG = 1, "100 Kg Sack"
         BASKET = 2, "50 Kg Basket"
@@ -198,8 +189,8 @@ class Market(Address):
         return reverse("model_detail", kwargs={"slug": self.slug})
 
 
-class MarketProduct(TimeStampedModel):
-    """To track the price of a product in a market"""
+class MarketProduct(models.Model):
+    """To track the price of a product in a market at a specific market day"""
 
     market = models.ForeignKey(
         Market, on_delete=models.SET_NULL, related_name="market_product", null=True
@@ -208,7 +199,7 @@ class MarketProduct(TimeStampedModel):
         Product, on_delete=models.PROTECT, related_name="market_product"
     )
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    mkt_date = models.DateField(auto_now=True)
+    mkt_date = models.DateField(auto_now_add=True)
 
     class Meta:
         constraints = [
@@ -225,7 +216,7 @@ class MarketProduct(TimeStampedModel):
         return "Deleted Market"
 
 
-class MarketImage(TimeStampedModel):
+class MarketImage(models.Model):
     """One market can have many images"""
 
     market = models.ForeignKey(
