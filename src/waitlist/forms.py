@@ -42,8 +42,8 @@ class ContactUsForm(forms.ModelForm):
                 attrs={
                     "class": name_class["class"],
                     "placeholder": "Message",
-                    "cols": 40,
-                    "rows": 3,
+                    "cols": 50,
+                    "rows": 7,
                 }
             ),
         }

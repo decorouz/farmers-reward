@@ -2,7 +2,7 @@ from pathlib import Path
 
 from config.env import config
 
-POSTGRES_LOCALLY = True  # when I want to use postgres locally
+POSTGRES_LOCALLY = False  # when I want to use postgres locally
 ENVIRONMENT = config("ENVIRONMENT", default="development")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -129,7 +129,6 @@ if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
     import dj_database_url
 
     DATABASE_URL = str(DATABASE_URL)
-    print(f"Using production database: {DATABASE_URL}")
     DATABASES = {
         "default": dj_database_url.config(
             default=DATABASE_URL,
@@ -218,6 +217,8 @@ CITIES_LIGHT_TRANSLATION_LANGUAGES = ["en"]  # Set the translation languages
 CITIES_LIGHT_INCLUDE_COUNTRIES = ["NG"]
 CITIES_LIGHT_INCLUDE_CITY_TYPES = ["PPL"]  # Include specific city types
 CITIES_LIGHT_APP = "core"
+
+# User authentication
 AUTH_USER_MODEL = "core.User"
 
 
