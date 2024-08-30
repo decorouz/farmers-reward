@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% if debug %}{% static 'css/style.css' %}{% else %}{% static 'css/style.min.css' %}{% endif %}">
     
-    <title>{% block head_title %}Farmers Reward{% endblock head_title %}</title>
+    {% block title %}{% endblock %}
 
 </head>
 

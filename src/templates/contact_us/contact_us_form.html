@@ -5,8 +5,8 @@
 <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6 ">
     <div class="py-8 mx-auto max-w-screen-sm text-center mb-8 lg:mb-16">
 
-        <div class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Join our Waitlist</div>
-        <p class="mb-6 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48 dark:text-gray-400">Be the first to know when we launch!</p>
+        <div class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Contact</div>
+        
 
         
         <form method="post" class="max-w-sm mx-auto">
@@ -14,9 +14,6 @@
             
             {% for field in form %}
             <div class="mb-5">
-                <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                    {{ field.label }}
-                </label>
                 
                 {{ field }}
                 {% if field.errors %}
@@ -28,7 +25,7 @@
             {% endfor %}
             
             <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center">
-                Join Waitlist
+                Send Message
             </button>
         </form>
     </div>

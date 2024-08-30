@@ -1,23 +1,23 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
-from .forms import WaitlistForm
+from .forms import ContactUsForm
 
 # Create your views here.
 
 
-def join_waitlist(request):
+def contact_us(request):
     if request.method == "POST":
-        form = WaitlistForm(request.POST)
+        form = ContactUsForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "You have successfully joined the waitlist.")
-            return redirect("waitlist_success")
+            return redirect("contact_thanks")
 
     else:
-        form = WaitlistForm()
-    return render(request, "waitlist/join_waitlist_form.html", {"form": form})
+        form = ContactUsForm()
+    return render(request, "contact_us/contact_us_form.html", {"form": form})
 
 
-def waitlist_success(request):
-    return render(request, "waitlist/success.html")
+# Send send confirmation email with pitch deck or summary
+# Ensure only valid emails are accepted
+# Ad htmx to handle form input and redirect.

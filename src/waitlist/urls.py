@@ -1,8 +1,13 @@
+from django.shortcuts import render
 from django.urls import path
 
 from . import views
 
 urlpatterns = [
-    path("join/", views.join_waitlist, name="join_waitlist"),
-    path("success/", views.waitlist_success, name="waitlist_success"),
+    path("", views.contact_us, name="contact_form"),
+    path(
+        "thanks/",
+        lambda request: render(request, "contact_us/thanks.html"),
+        name="contact_thanks",
+    ),
 ]

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from config.env import config
 
-POSTGRES_LOCALLY = False  # when I want to use postgres locally
+POSTGRES_LOCALLY = True  # when I want to use postgres locally
 ENVIRONMENT = config("ENVIRONMENT", default="development")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
