@@ -166,13 +166,6 @@ class SubsidyInstanceAdmin(ModelAdmin):
 
 @admin.register(InputPriceHistory)
 class InputPriceHistoryAdmin(ModelAdmin):
-    list_display = (
-        "content_type",
-        "object_id",
-        "item",
-        "price",
-        "created_on",
-    )
+    list_display = ("content_type", "object_id", "item", "price", "created_at")
     search_fields = ("item",)
-    ordering = ["created_on"]
-    list_filter = ("created_on",)
+    list_filter = ("created_at",)
