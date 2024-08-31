@@ -97,3 +97,6 @@ media/
 static/
 .docs
 Dockerfile
+
+
+.pre-commit-config.yaml

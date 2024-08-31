@@ -2,33 +2,32 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% if debug %}{% static 'css/style.css' %}{% else %}{% static 'css/style.min.css' %}{% endif %}">
-    
-    {% block title %}{% endblock %}
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% if debug %}{% static 'css/style.css' %}{% else %}{% static 'css/style.min.css' %}{% endif %}">
 
-</head>
+        <title>{% block title %}{% endblock %} | BaronialAg Home</title>
 
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
-    {% include "base/navbar.html" %}
+    </head>
 
-    <section class="h-screen  dark:bg-gray-900 flex">
-        <div class="flex pt-[12rem] w-full flex-col">
+    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+        {% include "base/navbar.html" %}
+
+        <main class="flex pt-[12rem] w-full flex-col">
             {% block content %}
             {% endblock content %}
-        </div>
 
-    </section>
+        </main>
 
-    
 
-    {% include "base/footer.html" %}
-<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
-     
-</body>
+
+        {% include "base/footer.html" %}
+        <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
+
+    </body>
 
 </html>

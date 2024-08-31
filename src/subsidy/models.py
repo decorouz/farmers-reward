@@ -163,7 +163,7 @@ class Agrochemical(TimeStampedPhoneModel):
 
 
 # Create your models here.
-class SubsidyProgram(TimeStampedPhoneModel):
+class SubsidyProgram(models.Model):
 
     class Sponsor(models.TextChoices):
         STATE = "STATE", "State Government"
@@ -238,15 +238,16 @@ class SubsidizedItem(TimeStampedPhoneModel):
         return f"{self.subsidized_item}"
 
 
-class InputPriceHistory(TimeStampedPhoneModel):
+class InputPriceHistory(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     item = GenericForeignKey("content_type", "object_id")
     price = models.DecimalField(max_digits=10, decimal_places=2)
     unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
+    created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.item}-{self.updated_on}-{self.price}"
+        return f"{self.item}"
 
 
 class SubsidyRate(TimeStampedPhoneModel):
@@ -274,6 +275,7 @@ class SubsidyInstance(TimeStampedPhoneModel):
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     redemption_date = models.DateField(auto_now_add=True)
     # Name of the redemption center.
+    # The idea is to make all the major markets a redemption center, likewise the vendors
     redemption_location = models.CharField(max_length=255, null=True, blank=True)
     farmer = models.ForeignKey(
         Farmer, related_name="subsidy_intance", on_delete=models.DO_NOTHING
@@ -291,7 +293,7 @@ class SubsidyInstance(TimeStampedPhoneModel):
         blank=True,
     )
     discounted_price = models.DecimalField(
-        max_digits=7, decimal_places=2, blank=True, editable=False
+        max_digits=7, decimal_places=2, blank=True, editable=False,
     )
 
     @cached_property
