@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
 
-from core.models import TimeStampedPhoneModel
+from core.models import BaseModel, TimeStampModel
 from farmers.models import Farmer
 
 # Define choices for units
@@ -26,7 +26,7 @@ UNIT_CHOICES = [
 ]
 
 
-class Fertilizer(TimeStampedPhoneModel):
+class Fertilizer(TimeStampModel):
     class FertilizerChoice(models.TextChoices):
         NPK = "NPK", "Npk"
         UREA = "UREA", "Urea"
@@ -60,7 +60,7 @@ class Fertilizer(TimeStampedPhoneModel):
         return f"{self.name}-{self.fertilizer_type}-{self.fertilizer_blend}"
 
 
-class Seed(TimeStampedPhoneModel):
+class Seed(TimeStampModel):
     class CropChoice(models.TextChoices):
         MAIZE = "MAIZE", "Maize"
         COWPEA = "COWPEA", "Cowpea"
@@ -102,7 +102,7 @@ class Seed(TimeStampedPhoneModel):
         return f"{self.name}-{self.seed_variety}"
 
 
-class Mechanization(TimeStampedPhoneModel):
+class Mechanization(TimeStampModel):
     class MechanizationChoice(models.TextChoices):
         PLOUGH = "PLOUGH", "Disc Plough"
         HARROW = "HARROW", "Harrow"
@@ -131,7 +131,7 @@ class Mechanization(TimeStampedPhoneModel):
         return f"{self.get_name_display()}"
 
 
-class Agrochemical(TimeStampedPhoneModel):
+class Agrochemical(TimeStampModel):
     class AgrochemicalChoice(models.TextChoices):
         PRE_EMERGENCE = "PRE", "Pre Emergence Herbicide"
         POST_EMERGENCE = "POS", "Post Emergence Herbicide"
@@ -163,7 +163,7 @@ class Agrochemical(TimeStampedPhoneModel):
 
 
 # Create your models here.
-class SubsidyProgram(models.Model):
+class SubsidyProgram(TimeStampModel):
 
     class Sponsor(models.TextChoices):
         STATE = "STATE", "State Government"
@@ -204,7 +204,7 @@ class SubsidyProgram(models.Model):
         return reverse("model_detail", kwargs={"slug": self.slug})
 
 
-class SubsidizedItem(TimeStampedPhoneModel):
+class SubsidizedItem(TimeStampModel):
     class ItemType(models.TextChoices):
         SEED = "SEED", "Seed"
         FERTILIZER = "FERT", "Fertilizer"
@@ -238,19 +238,18 @@ class SubsidizedItem(TimeStampedPhoneModel):
         return f"{self.subsidized_item}"
 
 
-class InputPriceHistory(models.Model):
+class InputPriceHistory(TimeStampModel):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     item = GenericForeignKey("content_type", "object_id")
     price = models.DecimalField(max_digits=10, decimal_places=2)
     unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
-    created_at = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.item}"
 
 
-class SubsidyRate(TimeStampedPhoneModel):
+class SubsidyRate(TimeStampModel):
     subsidy_program = models.ForeignKey(
         SubsidyProgram, related_name="subsidy_rate", on_delete=models.CASCADE
     )
@@ -271,7 +270,7 @@ class SubsidyRate(TimeStampedPhoneModel):
         return f"{self.subsidy_program.region} - {self.subsidized_item}: {self.rate}%"
 
 
-class SubsidyInstance(TimeStampedPhoneModel):
+class SubsidyInstance(TimeStampModel):
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     redemption_date = models.DateField(auto_now_add=True)
     # Name of the redemption center.
@@ -293,7 +292,10 @@ class SubsidyInstance(TimeStampedPhoneModel):
         blank=True,
     )
     discounted_price = models.DecimalField(
-        max_digits=7, decimal_places=2, blank=True, editable=False,
+        max_digits=7,
+        decimal_places=2,
+        blank=True,
+        editable=False,
     )
 
     @cached_property

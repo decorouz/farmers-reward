@@ -9,7 +9,7 @@ from django.contrib import admin
 from django.db import models
 from django.urls import reverse
 
-from core.models import TimeStampedPhoneModel
+from core.models import BaseModel, TimeStampModel
 from market.models import Market, Product
 from market.validators import validate_file_size
 from vendors.models import AgroVendor
@@ -17,7 +17,7 @@ from vendors.models import AgroVendor
 from .managers import FarmersMarketTransactionQuerySet
 
 
-class FarmersCooperative(TimeStampedPhoneModel):
+class FarmersCooperative(BaseModel):
     name = models.CharField(max_length=255)
     chairman = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
@@ -32,7 +32,7 @@ class FarmersCooperative(TimeStampedPhoneModel):
         return self.name
 
 
-class PersonalInfo(TimeStampedPhoneModel):
+class PersonalInfo(BaseModel):
     class IdentificationType(models.TextChoices):
         NATIONAL_ID = "ND", "National ID"
         PASSPORT = "IP", "International Passport"
@@ -234,7 +234,7 @@ class Farmer(PersonalInfo):
         return reverse("farmer_detail", kwargs={"slug": self.slug})
 
 
-class FarmersMarketTransaction(models.Model):
+class FarmersMarketTransaction(TimeStampModel):
     """A model to track the transactions between a farmer and a market"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -271,7 +271,7 @@ class FarmersMarketTransaction(models.Model):
         super().save(*args, **kwargs)
 
 
-class FarmersInputTransaction(models.Model):
+class FarmersInputTransaction(TimeStampModel):
     farmer = models.ForeignKey(
         Farmer, on_delete=models.CASCADE, related_name="input_purchases"
     )
@@ -307,7 +307,7 @@ class FarmersInputTransaction(models.Model):
         return f"{self.receipt_identifier}"
 
 
-class CultivatedField(models.Model):
+class CultivatedField(TimeStampModel):
     # area = gis_models.PolygonField(null=True, blank=True)
     field_size = models.FloatField(null=True, blank=True)
     soil_test = models.BooleanField(default=False)
@@ -338,7 +338,7 @@ class CultivatedField(models.Model):
         return reverse("cultivatedfield_detail", kwargs={"slug": self.slug})
 
 
-# class GeoTag(gis_models.Model):
+# class GeoTag(gis_TimeStampModel):
 #     """Geotag farmer by agricultural land"""
 
 #     pass
@@ -351,7 +351,7 @@ class Crop(Product):
         return f"{self.name}-{self.variety}"
 
 
-class CultivatedFieldHistory(models.Model):
+class CultivatedFieldHistory(TimeStampModel):
     """Keep track of the history of a cultivated field"""
 
     class FarmingPractice(models.TextChoices):
@@ -407,7 +407,7 @@ class CultivatedFieldHistory(models.Model):
         pass
 
 
-class Harvest(models.Model):
+class Harvest(TimeStampModel):
     pri_crop = models.OneToOneField(
         Crop, on_delete=models.CASCADE, related_name="pri_harvest"
     )
@@ -428,7 +428,7 @@ class Harvest(models.Model):
         return f"Harvest for {self.pri_crop}"
 
 
-class SoilProperty(models.Model):
+class SoilProperty(TimeStampModel):
     cultivated_field = models.ForeignKey(
         CultivatedField, on_delete=models.CASCADE, related_name="soil_properties"
     )
@@ -458,7 +458,7 @@ class SoilProperty(models.Model):
         return f"{self.cultivated_field} {self.soil_test_date}"
 
 
-class Badge(models.Model):
+class Badge(TimeStampModel):
     class BadgeType(models.TextChoices):
         MEMBERSHIP_BRONZE = "B", "Bronze"  # KYC complete. 10
         MEMBERSHIP_SILVER = "S", "Silver"
@@ -479,7 +479,7 @@ class Badge(models.Model):
 
 
 # UserBadge Model
-class UserBadge(models.Model):
+class UserBadge(TimeStampModel):
     """Assign a badge to a farmer upon reaching the required points"""
 
     farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE)

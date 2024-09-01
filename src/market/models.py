@@ -3,14 +3,14 @@ from django.contrib import admin
 from django.db import models
 from django.urls import reverse
 
-from core.models import TimeStampedPhoneModel
+from core.models import BaseModel, TimeStampModel
 
 from .validators import validate_file_size
 
 # Each farmer is assigned to an field extension officer
 
 
-class Address(models.Model):
+class Address(TimeStampModel):
     display_address = models.CharField(max_length=255, null=True, blank=True)
     town = models.CharField(max_length=255, blank=True, null=True)
     region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True)
@@ -33,7 +33,7 @@ class Address(models.Model):
         ]
 
 
-class ContactPerson(TimeStampedPhoneModel):
+class ContactPerson(BaseModel):
     ROLE = [
         ("extension_agent", "Extension Agent"),
         ("chairman", "Chairman"),
@@ -60,7 +60,7 @@ class ContactPerson(TimeStampedPhoneModel):
         return f"{self.first_name} {self.last_name}"
 
 
-class PaymentMethod(models.Model):
+class PaymentMethod(TimeStampModel):
     class PaymentMethodChoices(models.IntegerChoices):
         CASH = 1, "Cash"
         CREDIT_CARD = 2, "Credit Card"
@@ -87,7 +87,7 @@ class PaymentMethod(models.Model):
         return self.get_name_display()
 
 
-class Product(models.Model):
+class Product(TimeStampModel):
     class UnitChoices(models.IntegerChoices):
         KG = 1, "100 Kg Sack"
         BASKET = 2, "50 Kg Basket"
@@ -189,7 +189,7 @@ class Market(Address):
         return reverse("model_detail", kwargs={"slug": self.slug})
 
 
-class MarketProduct(models.Model):
+class MarketProduct(TimeStampModel):
     """To track the price of a product in a market at a specific market day"""
 
     market = models.ForeignKey(
@@ -216,7 +216,7 @@ class MarketProduct(models.Model):
         return "Deleted Market"
 
 
-class MarketImage(models.Model):
+class MarketImage(TimeStampModel):
     """One market can have many images"""
 
     market = models.ForeignKey(
