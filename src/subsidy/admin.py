@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
-from unfold.admin import ModelAdmin
+from unfold.admin import ModelAdmin, TabularInline
 
 from .models import (
     Agrochemical,
@@ -16,12 +16,12 @@ from .models import (
 
 
 # Define inlines for related models
-class SubsidyRateInline(admin.TabularInline):
+class SubsidyRateInline(TabularInline):
     model = SubsidyRate
     extra = 1
 
 
-class SubsidyInstanceInline(admin.TabularInline):
+class SubsidyInstanceInline(TabularInline):
     model = SubsidyInstance
     extra = 1
 
@@ -35,9 +35,8 @@ class SubsidizedItemInline(GenericTabularInline):
 @admin.register(Fertilizer)
 class FertilizerAdmin(ModelAdmin):
     list_display = (
-        "id",
+        "brand",
         "fertilizer_type",
-        "name",
         "fertilizer_blend",
         # "current_price",
         # "unit",
@@ -53,14 +52,14 @@ class FertilizerAdmin(ModelAdmin):
 @admin.register(Seed)
 class SeedAdmin(ModelAdmin):
     list_display = (
-        "id",
+        "brand",
         "name",
         "seed_variety",
         "gmo",
         # "current_price",
         # "unit",
     )
-    search_fields = ("name", "seed_variety")
+    search_fields = ("name", "brand")
     list_filter = ("name", "gmo")
     inlines = [SubsidizedItemInline]
 
@@ -68,27 +67,24 @@ class SeedAdmin(ModelAdmin):
 @admin.register(Mechanization)
 class MechanizationAdmin(ModelAdmin):
     list_display = (
-        "id",
-        "name",
+        "operation",
         # "current_price",
         # "unit",
     )
-    search_fields = ("name",)
-    list_filter = ("name",)
+    search_fields = ("operation",)
+    list_filter = ("operation",)
     inlines = [SubsidizedItemInline]
 
 
 @admin.register(Agrochemical)
 class AgrochemicalAdmin(ModelAdmin):
     list_display = (
-        "id",
-        "name",
-        "agrochemical_name",
+        "brand",
+        "type",
         # "current_price",
         # "unit",
     )
-    search_fields = ("name", "agrochemical_name")
-    list_filter = ("agrochemical_name",)
+    list_filter = ("type",)
     inlines = [SubsidizedItemInline]
 
 
@@ -96,20 +92,19 @@ class AgrochemicalAdmin(ModelAdmin):
 class SubsidyProgramAdmin(ModelAdmin):
     list_display = (
         "title",
-        "sponsor_type",
         "sponsor_name",
-        "number_of_beneficiaries",
-        "legislation",
+        "level",
+        "target_num_of_beneficiaries",
         "country",
-        "region",
+        "state",
+        "budget_in_naira",
         "start_date",
         "end_date",
         "is_active",
     )
-    list_select_related = ("country", "region")
-    search_fields = ("sponsor_name", "region__name")
-    list_filter = ("sponsor_name", "is_active", "start_date", "end_date")
-    raw_id_fields = ("country", "region")
+    list_select_related = ("country", "state")
+    list_filter = ("is_active", "level")
+    raw_id_fields = ("country", "state")
     inlines = [SubsidyRateInline, SubsidyInstanceInline]
 
 
@@ -120,21 +115,24 @@ class SubsidizedItemAdmin(ModelAdmin):
         "content_type",
         "object_id",
         "subsidized_item",
-        # "current_price",
+        "item_price",
+        "unit",
     )
-    search_fields = ("type",)
-    ordering = ["type"]
-    list_filter = ("type", "date")
+    list_filter = ("type",)
     inlines = [SubsidyRateInline]
 
-    def current_price(self, obj):
-        return obj.subsidized_item.current_price
+    # def current_price(self, obj):
+    #     return obj.subsidized_item.item_price
 
 
 @admin.register(SubsidyRate)
 class SubsidyRateAdmin(ModelAdmin):
-    list_display = ("subsidy_program", "subsidized_item", "rate")
-    search_fields = ("subsidy_program__title", "subsidized_item__subsidized_item")
+    list_display = (
+        "subsidy_program",
+        "subsidized_item",
+        "rate",
+    )
+    # search_fields = ("subsidy_program__title", "subsidized_item__subsidized_item")
     list_selected_related = ("subsidy_program", "subsidized_item")
     list_filter = ("rate",)
 
@@ -147,25 +145,16 @@ class SubsidyInstanceAdmin(ModelAdmin):
         "subsidy_program",
         "quantity",
         "item_unit",
-        # "original_price",
-        "discounted_price",
-        "total_discounted_price",
+        # "discounted_value",
         "redemption_date",
     )
-    search_fields = (
-        "farmer__name",
-        "item__subsidized_item",
-        "subsidy_program__title",
-    )
+
     list_filter = ("redemption_date",)
     raw_id_fields = ("farmer", "item", "subsidy_program")
-
-    def total_discounted_price(self, obj):
-        return obj.quantity * obj.discounted_price
 
 
 @admin.register(InputPriceHistory)
 class InputPriceHistoryAdmin(ModelAdmin):
-    list_display = ("content_type", "object_id", "item", "price", "created_at")
+    list_display = ("content_type", "object_id", "item", "price", "effective_date")
     search_fields = ("item",)
-    list_filter = ("created_at",)
+    list_filter = ("effective_date",)

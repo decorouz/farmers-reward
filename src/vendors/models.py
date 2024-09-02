@@ -1,5 +1,3 @@
-import uuid
-
 from django.db import models
 
 from core.models import BaseModel
@@ -8,7 +6,6 @@ from core.models import BaseModel
 
 
 class AgroVendor(BaseModel):
-    unique_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     name = models.CharField(max_length=100)
     addressof_business = models.CharField(max_length=255)
     state = models.CharField(max_length=100)
