@@ -2,32 +2,15 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin
 
 from farmers.models import (
-    Badge,
     CultivatedField,
     CultivatedFieldHistory,
     Farmer,
-    FarmersCooperative,
     FarmersInputTransaction,
     FarmersMarketTransaction,
     FieldExtensionOfficer,
     Harvest,
     SoilProperty,
-    UserBadge,
 )
-
-
-# Register your models here.
-@admin.register(FarmersCooperative)
-class FarmersCooperativeAdmin(ModelAdmin):
-    list_display = (
-        "name",
-        "chairman",
-        "phone",
-        "registration_number",
-        "location",
-        "blacklisted",
-        "verification_status",
-    )
 
 
 @admin.register(FieldExtensionOfficer)
@@ -65,20 +48,18 @@ class FarmerAdmin(ModelAdmin):
         "lga",
         "state_of_residence",
         "phone",
-        "cooperative_society",
         "field_extension_officer",
         "category_type",
         "agricultural_activities",
         "farmsize",
         # "verification_status",
-        "confirmed_farmer_status",
+        "is_confirmed_farmer",
         "total_points",
         "verification_date",
     )
     list_select_related = (
         "state_of_origin",
         "state_of_residence",
-        "cooperative_society",
         "lga",
         "field_extension_officer",
     )
@@ -188,18 +169,3 @@ class SoilPropertyAdmin(ModelAdmin):
         "soil_test_date",
     )
     list_select_related = ("cultivated_field",)
-
-
-@admin.register(Badge)
-class BadgeAdmin(ModelAdmin):
-    list_display = ("name", "image_thumbnail", "points_required")
-    list_filter = ("points_required",)
-    list_filter = ("name",)
-
-
-@admin.register(UserBadge)
-class UserBadgeAdmin(ModelAdmin):
-    list_display = ("farmer", "badge", "earned_on")
-    list_select_related = ("farmer", "badge")
-    list_filter = ("earned_on", "badge", "farmer")
-    list_select_related = ("farmer", "badge")

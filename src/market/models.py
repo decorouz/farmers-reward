@@ -1,25 +1,24 @@
+from datetime import timedelta
+from functools import cached_property
+
 from cities_light.models import Country, Region, SubRegion
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
-from core.models import TimeStampedPhoneModel
+from core.models import BaseModel, TimeStampModel
 
 from .validators import validate_file_size
-
-# Each farmer is assigned to an field extension officer
 
 
 class Address(models.Model):
     display_address = models.CharField(max_length=255, null=True, blank=True)
     town = models.CharField(max_length=255, blank=True, null=True)
-    region = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True, blank=True)
-    sub_region = models.ForeignKey(
-        SubRegion, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    country = models.ForeignKey(
-        Country, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    state = models.ForeignKey(Region, on_delete=models.CASCADE)
+    local_govt = models.ForeignKey(SubRegion, on_delete=models.CASCADE)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
     latitude = models.FloatField(max_length=9, blank=True, null=True)
     longitude = models.FloatField(max_length=9, blank=True, null=True)
 
@@ -33,7 +32,8 @@ class Address(models.Model):
         ]
 
 
-class ContactPerson(TimeStampedPhoneModel):
+
+class ContactPerson(BaseModel):  # replace`BaseModel` with Address
     ROLE = [
         ("extension_agent", "Extension Agent"),
         ("chairman", "Chairman"),
@@ -60,34 +60,58 @@ class ContactPerson(TimeStampedPhoneModel):
         return f"{self.first_name} {self.last_name}"
 
 
-class PaymentMethod(models.Model):
-    class PaymentMethodChoices(models.IntegerChoices):
-        CASH = 1, "Cash"
-        CREDIT_CARD = 2, "Credit Card"
-        POS = 3, "Point of Sale"
-        ATM_ONSITE = 4, "ATM Onsite"
-        ATM_NEARBY = 5, "ATM within 5 minutes walk"
-        BANK_TRANSFER = 6, "Bank Transfer"
-
-    name = models.IntegerField(
-        choices=PaymentMethodChoices.choices,
-        default=PaymentMethodChoices.CASH,
+# Only admin can create a market
+class Market(Address):
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(unique=True)  # slug
+    description = models.TextField(blank=True, null=True)
+    number_of_vendors = models.IntegerField(default=0)
+    operating_hours = models.CharField(max_length=50, default="8:00 AM - 5:00 PM")
+    frequency = models.SmallIntegerField(default=4)
+    reference_mkt_date = models.DateField(verbose_name="confirmed market date")
+    contact_person = models.OneToOneField(
+        ContactPerson, on_delete=models.PROTECT, related_name="markets"
     )
-    description = models.CharField(max_length=255, blank=True, null=True)
+
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["name"],
-                name="unique_payment_method",
+                name="unique_market_name",
             )
         ]
 
     def __str__(self):
-        return self.get_name_display()
+        return self.name
+
+    def clean(self):
+        super().clean()
+        if self.reference_mkt_date and self.reference_mkt_date > timezone.now().date():
+            raise ValidationError("Start date cannot be in the future.")
+
+    @cached_property
+    def previous_market_day(self):
+        today = timezone.now().date()
+
+        days_since_last_market = (today - self.reference_mkt_date).days % self.frequency
+        return today - timedelta(days=days_since_last_market)
+
+    @property
+    def is_market_day(self):
+        today = timezone.now().date()
+        return (today - self.reference_mkt_date).days % self.frequency == 0
+
+    @cached_property
+    def next_market_day(self):
+        return self.previous_market_day + timedelta(days=self.frequency)
+
+    def get_absolute_url(self):
+        return reverse("model_detail", kwargs={"slug": self.slug})
 
 
-class Product(models.Model):
+class Product(TimeStampModel):
     class UnitChoices(models.IntegerChoices):
         KG = 1, "100 Kg Sack"
         BASKET = 2, "50 Kg Basket"
@@ -122,101 +146,67 @@ class Product(models.Model):
         GARRI = "GARRI", "Garri"
 
     name = models.CharField(max_length=50, choices=ProductChoices.choices, unique=True)
-    description = models.TextField(blank=True, null=True)
     slug = models.SlugField(unique=True)
     local_name = models.CharField(max_length=50, blank=True, null=True)
-    unit = models.IntegerField(
-        choices=UnitChoices.choices,
-        default=UnitChoices.KG,
-        blank=True,
-        null=True,
-    )
+    unit = models.IntegerField(choices=UnitChoices.choices, default=UnitChoices.KG)
 
     class Meta:
         verbose_name_plural = "products"
         constraints = [
             models.UniqueConstraint(
-                fields=[
-                    "name",
-                    "local_name",
-                ],
+                fields=["name", "local_name"],
                 name="unique_name",
             )
         ]
 
     def __str__(self):
-        return self.get_name_display()
-
-    def get_absolute_url(self):
-        return reverse("model_detail", kwargs={"slug": self.slug})
+        return self.name  # noqa: F401
 
 
-# Only admin can create a market
-class Market(Address):
-    name = models.CharField(max_length=255, unique=True)
-    slug = models.SlugField(unique=True)  # slug
-    description = models.TextField(blank=True, null=True)
-    number_of_vendors = models.IntegerField(default=0)
-    operating_hours = models.CharField(max_length=50, default="8:00 AM - 5:00 PM")
-    market_day_interval = models.SmallIntegerField(default=4)
-    reference_mkt_date = models.DateField(verbose_name="confirmed market date")
-    contact_person = models.OneToOneField(
-        ContactPerson,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True,
-        related_name="markets",
-    )
-    accepted_payment_methods = models.ManyToManyField(
-        PaymentMethod,
-        blank=True,
-        related_name="markets",
-    )
-    is_active = models.BooleanField(default=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["name"],
-                name="unique_market_name",
-            )
-        ]
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse("model_detail", kwargs={"slug": self.slug})
-
-
-class MarketProduct(models.Model):
-    """To track the price of a product in a market at a specific market day"""
-
-    market = models.ForeignKey(
-        Market, on_delete=models.SET_NULL, related_name="market_product", null=True
-    )
-    product = models.ForeignKey(
-        Product, on_delete=models.PROTECT, related_name="market_product"
-    )
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+class MarketDay(models.Model):
+    market = models.ForeignKey(Market, on_delete=models.CASCADE)
     mkt_date = models.DateField(auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["product", "market", "mkt_date"],
-                name="unique_item",
+                fields=["market", "mkt_date"],
+                name="unique_market_day",
+            )
+        ]
+
+    def clean(self):
+        # Ensure the date is today
+        if not self.market.is_market_day:
+            raise ValidationError("MarketDay date must be today.")
+
+    def __str__(self):
+        return f"{self.market.name} - {self.mkt_date}"
+
+
+class ProductPrice(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="product_price"
+    )
+    market_day = models.ForeignKey(MarketDay, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product", "market_day"],
+                name="unique_product_price",
             )
         ]
 
     # When we save this what do we want to happen?
     def __str__(self):
-        if self.market:
-            return self.market.name
+        if self.product:
+            return self.product.name
         return "Deleted Market"
 
 
-class MarketImage(models.Model):
+class MarketImage(TimeStampModel):
     """One market can have many images"""
 
     market = models.ForeignKey(

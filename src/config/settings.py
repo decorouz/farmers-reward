@@ -67,10 +67,9 @@ INSTALLED_APPS = [
     "admin_honeypot",
     # User defined apps
     "core",
-    "farmers",
     "market",
+    "farmers",
     "subsidy",
-    "vendors",
     "waitlist",
 ]
 
@@ -178,6 +177,11 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
 
+if DEBUG:
+    from datetime import datetime
+
+    STATIC_VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
+
 
 if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
@@ -193,11 +197,11 @@ CLOUDINARY_STORAGE = {
 
 
 # WhiteNoise
-# STORAGES = {
-#     "staticfiles": {
-#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-#     },
-# }
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
