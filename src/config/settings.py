@@ -177,11 +177,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "media/"
 
-if DEBUG:
-    from datetime import datetime
-
-    STATIC_VERSION = datetime.now().strftime("%Y%m%d%H%M%S")
-
 
 if ENVIRONMENT == "production" or POSTGRES_LOCALLY == True:
     DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"

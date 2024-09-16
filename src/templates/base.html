@@ -10,7 +10,7 @@
         <link  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"  rel="stylesheet">
         
 
-        <link rel="stylesheet" href="{% if debug %}{% static 'css/style.css' %}?v={{ STATIC_VERSION }}{% else %}{% static 'css/style.min.css' %}{% endif %}">
+        <link rel="stylesheet" href="{% if debug %}{% static 'css/style.css' %}{% else %}{% static 'css/style.min.css' %}{% endif %}">
 
         <title>{% block title %}{% endblock %} | BaronialAg Home</title>
 
