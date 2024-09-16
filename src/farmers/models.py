@@ -1,9 +1,9 @@
 import uuid
 from datetime import date
-from tempfile import mktemp
 
 from cities_light.models import Country, Region, SubRegion
 from django.contrib import admin
+from django.core.validators import MinValueValidator
 
 # from django.contrib.gis.db import models as gis_models
 from django.db import models
@@ -12,24 +12,23 @@ from django.urls import reverse
 from core.models import BaseModel, TimeStampModel
 from market.models import Market, Product
 from market.validators import validate_file_size
-from vendors.models import AgroVendor
 
 from .managers import FarmersMarketTransactionQuerySet
 
 
-class FarmersCooperative(BaseModel):
-    name = models.CharField(max_length=255)
-    chairman = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    registeration_date = models.DateField(auto_now_add=True)
-    registration_number = models.CharField(max_length=255, unique=True)
+class AgroVendor(BaseModel):
+    name = models.CharField(max_length=100)
+    addressof_business = models.CharField(max_length=255)
+    state = models.CharField(max_length=100)
+    lga = models.CharField(max_length=100)
+    contact_person = models.CharField(max_length=100)
+    contact_phone = models.CharField(max_length=15)
+    email = models.EmailField()
     verification_status = models.BooleanField(default=False)
-    number_of_members = models.SmallIntegerField(default=0)
-    blacklisted = models.BooleanField(default=False)  # Can be appealed
+    # When is vendor considered verified?
 
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return f"{self.name}"
 
 
 class PersonalInfo(BaseModel):
@@ -54,7 +53,9 @@ class PersonalInfo(BaseModel):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     gender = models.CharField(max_length=1, choices=Gender.choices)
-    date_of_birth = models.DateField(verbose_name=("Birthday"), null=True, blank=True)
+    date_of_birth = models.DateField(
+        verbose_name=("Birthday"), default=date(1990, 12, 29)
+    )
     state_of_origin = models.ForeignKey(
         Region,
         on_delete=models.SET_NULL,
@@ -114,6 +115,8 @@ class PersonalInfo(BaseModel):
 
 
 class FieldExtensionOfficer(PersonalInfo):
+    # email must be a valid email address
+
     email = models.EmailField(max_length=255, unique=True, blank=True, null=True)
     affiliation = models.CharField(
         max_length=255, blank=True, null=True
@@ -146,34 +149,15 @@ class Farmer(PersonalInfo):
         MEDIUM_LARGE_HOLDER = "MLH", "Commercial"
 
     class FarmsizeCategory(models.TextChoices):
-        LESS_THAN_ONE_HA = (
-            "<1",
-            "<1 Hectare",
-        )
-        ONE_TO_THREE_HA = (
-            "1-3",
-            "1-3 Hectares",
-        )
-        THREE_TO_FIVE_HA = (
-            "3-5",
-            "3-5 Hectares",
-        )
-        ABOVE_FIVE_HA = (
-            ">5",
-            ">5 Hectares",
-        )
+        LESS_THAN_ONE_HA = ("<1", "<1 Hectare")
+        ONE_TO_THREE_HA = ("1-3", "1-3 Hectares")
+        THREE_TO_FIVE_HA = ("3-5", "3-5 Hectares")
+        ABOVE_FIVE_HA = (">5", ">5 Hectares")
 
     category_type = models.CharField(
         max_length=3,
         choices=CategoryType.choices,
         default=CategoryType.MEDIUM_LARGE_HOLDER,
-    )
-    cooperative_society = models.ForeignKey(
-        FarmersCooperative,
-        on_delete=models.PROTECT,
-        related_name="farmer",
-        null=True,
-        blank=True,
     )
 
     field_extension_officer = models.ForeignKey(
@@ -213,7 +197,7 @@ class Farmer(PersonalInfo):
         return f"{self.first_name}, {self.last_name}"
 
     @admin.display(boolean=True, description="Purchased Input and Sold Produce")
-    def confirmed_farmer_status(self):
+    def is_confirmed_farmer(self):
         has_earned_mkt_transaction_pts = self.transactions.exists()
         has_input_purchase_pts = self.input_purchases.exists()
         return has_earned_mkt_transaction_pts and has_input_purchase_pts
@@ -247,7 +231,9 @@ class FarmersMarketTransaction(TimeStampModel):
     produce = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveSmallIntegerField()
     transaction_date = models.DateField(auto_now_add=True)
-    points_earned = models.IntegerField(default=0, editable=False)
+    points_earned = models.IntegerField(
+        validators=[MinValueValidator(0)], editable=False
+    )
     objects = FarmersMarketTransactionQuerySet.as_manager()
 
     class Meta:
@@ -282,7 +268,9 @@ class FarmersInputTransaction(TimeStampModel):
     receipt_number = models.CharField(max_length=255)
     receipt_redemption_date = models.DateField(auto_now_add=True)
     receipt_identifier = models.CharField(max_length=255, editable=False, blank=True)
-    points_earned = models.IntegerField(default=0, editable=False)
+    points_earned = models.IntegerField(
+        validators=[MinValueValidator(0)], editable=False
+    )
 
     class Meta:
         constraints = [
@@ -374,7 +362,7 @@ class CultivatedFieldHistory(TimeStampModel):
     farmer = models.ForeignKey(
         Farmer, on_delete=models.SET_NULL, related_name="cultivated_fields", null=True
     )
-    primary_crop_type = models.CharField(max_length=50, default="Wheat")
+    primary_crop_type = models.CharField(max_length=50)
     secondary_crop_type = models.CharField(max_length=50, null=True, blank=True)
     pri_crop_planting_date = models.DateField(null=True, blank=True)
     sec_crop_planting_date = models.DateField(null=True, blank=True)
@@ -456,35 +444,3 @@ class SoilProperty(TimeStampModel):
 
     def __str__(self):
         return f"{self.cultivated_field} {self.soil_test_date}"
-
-
-class Badge(TimeStampModel):
-    class BadgeType(models.TextChoices):
-        MEMBERSHIP_BRONZE = "B", "Bronze"  # KYC complete. 10
-        MEMBERSHIP_SILVER = "S", "Silver"
-        MEMBERSHIP_GOLD = "G", "Gold"
-
-    name = models.CharField(
-        max_length=255, choices=BadgeType.choices, default=BadgeType.MEMBERSHIP_BRONZE
-    )
-    description = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to="farmers/badges/")
-    image_thumbnail = models.ImageField(
-        upload_to="badges/thumbnails/", blank=True, null=True
-    )
-    points_required = models.PositiveIntegerField()
-
-    def __str__(self) -> str:
-        return self.name
-
-
-# UserBadge Model
-class UserBadge(TimeStampModel):
-    """Assign a badge to a farmer upon reaching the required points"""
-
-    farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE)
-    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
-    earned_on = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.farmer.first_name} earned {self.badge.name}"
