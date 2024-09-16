@@ -1,13 +1,21 @@
-{% extends "base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% if debug %}{% static 'css/style.css' %}?v={{ STATIC_VERSION }}{% else %}{% static 'css/style.min.css' %}{% endif %}">
+    <link  href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"  rel="stylesheet">
 
-{% block title %} Thank you {% endblock %}
-{% block content %}
+    <title>Thank You</title>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
     <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6 ">
         <div class="py-8 mx-auto max-w-screen-sm text-center mb-8 lg:mb-16">
             <h3 class="mb-4 text-3xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-5xl dark:text-white">Thank You!</h3>
-            <p class="font-light text-gray-500 lg:mb-16 sm:text-xl dark:text-gray-400">We have received your request and appreciate your interest in our product. Our team will review your request and get in touch with you shortly to schedule a convenient time for your demo.</p>
+            <p class="font-light text-gray-500 lg:mb-16 sm:text-xl dark:text-gray-400">We've received your request and appreciate your interest. Our team will review it and contact you soon to arrange a demo.</p>
+            <a href="/" class="inline-block px-6 py-3 mt-4 text-lg font-medium leading-6 text-center text-white uppercase transition bg-gray-500 rounded-md shadow ripple focus:outline-none">Baronial Ag</a>
         </div>
     </div>
-{% endblock %}
-
-
+</body>
+</html>

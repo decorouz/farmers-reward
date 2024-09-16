@@ -1,19 +1,285 @@
 {% extends "base.html" %}
 
-
+{% load static %}
 {% block title %}Home{% endblock %}
 
-
 {% block content %}
-    <div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 lg:px-12">
-        <h1 class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl">We Give Government and NGOs a <span class="text-blue-600">New Way</span> to implement Agricultural Intervention and Subsidy programs</h1>
-        <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 xl:px-48">We are solving agricultural intervention/subsidy most pressing issues through farmers market behavior.</p>
-        <div class="flex flex-col mb-8 lg:mb-16 space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
-            <a href="{% url "contact_form" %}" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-gray-900 rounded-lg border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100">
-                Book a Demo
-            </a>
+
+<!-- Hero section -->
+<section class="relative bg-cover bg-center h-screen flex items-center justify-center" style="background-image: url('{% static "images/hero_image_1.jpeg" %}');">
+    <div class="absolute inset-0 bg-black opacity-50"></div>
+    <div class="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold mb-5 leading-tight">
+            Facilitating agricultural <br class="hidden sm:inline"/>subsidies for 
+            maximum <br class="hidden sm:inline"/> impact.
+        </h1>
+        <p class="text-lg sm:text-xl mb-8 font-adelle-sans">Data-Driven | Farmers Inspired | Growth Accelerated</p>
+        <a href="{% url 'contact_form' %}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium px-6 sm:px-10 py-3 sm:py-4 text-sm sm:text-base inline-block">REQUEST A DEMO</a>
+    </div>
+</section>
+
+<!-- What we do section -->
+<section id="what-we-do" class="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+        <div class="md:w-1/2">
+            <p class="text-lg sm:text-xl">
+                We are building the data-driven digital future for agricultural subsidies in sub-Saharan Africa to revolutionize implementation, monitoring, and impact analysis.<br/><br/>Our mission: ensure that every dollar invested by governments and donors directly enhances food security.
+            </p>
+        </div>
+        <div class="md:w-1/2">
+            <img src="{% static 'images/data_in_ag2.jpeg' %}" alt="project members" class="w-full rounded shadow-lg border border-merino-400">
         </div>
     </div>
+</section>
 
+
+<!-- Data-Driven Features section -->
+<section id="features" class="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col lg:flex-row justify-between items-start gap-8">
+        <div class="lg:w-1/2">
+            <h2 class="font-semibold text-3xl sm:text-4xl mb-4">The Data-Driven Future</h2>
+            <p class="text-lg sm:text-xl mb-8">We build data solutions to optimise and revolutionise the agricultural subsidy and intervention</p>
+            <img src="{% static 'images/data-driven-image.jpeg' %}" alt="project members" class="w-full rounded shadow-lg border border-merino-400">
+        </div>
+        <div class="lg:w-1/2 space-y-8 mx-auto">
+            <div>
+                <h2 class="font-medium text-xl mb-2">DATA COLLECTION TOOLS AND METHODS</h2>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Novel Methods: Farmers Inputs and market behaviour</li>
+                    <li>Productivity data: Production output and value</li>
+                    <li>Real-time commodity market price tracking</li>
+                </ul>
+            </div>
+            <div>
+                <h2 class="font-medium text-xl mb-2">DATA ANALYTICS TOOLS</h2>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Bespoke algorithm</li>
+                    <li>Modern Machine Learning Approach</li>
+                    <li>Extraction of insights from different data points</li>
+                </ul>
+            </div>
+            <div>
+                <h2 class="font-medium text-xl mb-2">AGRICULTURAL SECTOR INSIGHTS</h2>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>High veracity data at individual farmer level</li>
+                    <li>High veracity data at individual market level</li>
+                    <li>Identify the highly productive farmers and their practices</li>
+                    <li>Know the impact of every dollar spend on food security.</li>
+                </ul>
+            </div>
+        </div>
+        
+    </div>
+</section>
+
+<!-- Stakeholders Demand Hierarchy -->
+<section class="py-16 bg-gray-100/30">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="md:w-1/2">
+                <h2 class="text-3xl font-bold text-center md:text-left mb-8">Stakeholders Demand Hierarchy</h2>
+                <p class="mb-4">Demands from stakeholders continue to evolve as agricultural interventions and subsidy programs becomes more expensive. As each challenge is addressed, expectations grow.</p>
+                <p class="mb-4">Today, targeted support and geographical distribution have largely been solved , and the focus has shifted to Equity, Impact on Food Security, and Sustainability.</p>
+                <p class="mb-4">Baronial Ag is uniquely placed to provide solutions for the bottlenecks yet to be solved.</p>
+                <p class="mb-4">Baronial gives donors and government the tools to meet these evolving demands.</p>
+            </div>
+            <div class="md:w-1/2">
+                <img src="{% static 'images/donor-demands.svg' %}" alt="Stakeholders Demand Hierarchy" class="rounded-lg w-full">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- The problem section -->
+<section class="py-16">
+    <div class="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col lg:flex-row justify-between items-start mb-12 gap-8">
+            <div class="lg:w-1/2">
+                <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 leading-tight">
+                    Over 776 billion Naira ($4.8 billion) is estimated to be lost to corruption, with an average annual loss of 26 billion Naira ($162.5 million).
+                </h2>
+            </div>
+            <div class="lg:w-1/2">
+                <p class="text-lg sm:text-xl text-gray-600">
+                    The lack of data prevents better evidence based-policy support to government and donor agencies.
+                </p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Corruption Column -->
+            <div class="bg-white rounded-lg border border-gray-100 p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="text-xl font-semibold mb-2 text-center text-gray-800">Corruption & Mismanagement</h3>
+                <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                    <li>The current implementation focuses on one-size-fits-all inputs</li>
+                    <li>Fertilizer diverted to benefit middlemen and was often smuggled to neighboring countries.</li>
+                </ul>
+            </div>
+
+            <!-- Implementation Column -->
+            <div class="bg-white rounded-lg border border-gray-100 p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <h3 class="text-xl font-semibold mb-2 text-center text-gray-800">Implementation Issues</h3>
+                <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                    <li>Implementation costs often exceed benefits</li>
+                    <li>Unequal distribution favoring larger, politically connected farms</li>
+                    <li>Lack of precise data on farmer capacity and market conditions</li>
+                    <li>The current implementation focuses on one-size-fits-all inputs</li>
+                </ul>
+            </div>
+
+            <!-- Data Column -->
+            <div class="bg-white rounded-lg border border-gray-100 p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                </svg>
+                <h3 class="text-xl font-semibold mb-2 text-center text-gray-800">Farmer Data</h3>
+                <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                    <li>Donors increasingly require monitoring and analysis of public expenditure on food and agriculture before providing budgetary support.</li>
+                    <li>Farmers production output rarely measured</li>
+                    <li>Policymaker advisory Models need accurate data on total agricultural spending and its impact.</li>
+                </ul>
+            </div>
+
+            <!-- Impact and Sustainability Column -->
+            <div class="bg-white rounded-lg border border-gray-100 p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="text-xl font-semibold mb-2 text-center text-gray-800">Impact and Sustainability</h3>
+                <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                    <li>The impact of subsidy programs are are rarely measured</li>
+                    <li>Baronial enables the agricultural sector to realise substantial positive impact on SDG goals.</li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How Baronial Ag's Solution section -->
+<section id="baronial-solution" class="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col lg:flex-row justify-between items-start gap-8">
+        <div class="lg:w-1/2">
+            <h2 class="font-bold text-2xl sm:text-3xl mb-6">How Baronial Ag's Solution Deliver the Data-Driven Future</h2>
+            <ul class="space-y-4 text-lg">
+                <li class="flex items-start">
+                    <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Re-purpose agricultural interventions using Modern Machine Learning Methods to implement, monitor and analyze impact of intervention on food production per farmer and per dollar spend.
+                </li>
+                <li class="flex items-start">
+                    <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Unlock the benefits of government and donor-funded interventions for maximum impact
+                </li>
+                {% comment %} <li class="flex items-start">
+                    <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Reward farmers for participating actively at local markets
+                </li> {% endcomment %}
+                <li class="flex items-start">
+                    <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Structure incentive programs to reward farmers for high productivity and sustainable farming practice
+                </li>
+                <li class="flex items-start">
+                    <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Improve the use of allocated budgets for agricultural investments with data-driven recommendations.
+                </li>
+                <li class="flex items-start">
+                    <svg class="h-6 w-6 text-green-500 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Support data collection at the local level to analyze how different expenditures affect agriculture, food systems, and related outcomes like nutrition, environment, and poverty.
+                </li>
+            </ul>
+        </div>
+        <div class="lg:w-1/2 space-y-8">
+            <img src="{% static 'images/how_we_do.svg' %}" alt="How we do it" class="w-full rounded shadow-lg border border-merino-400">
+        </div>
+    </div>
+</section>
+
+<!-- FarmersReward section -->
+<section id="farmersReward" class="py-16 bg-gray-600">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Hero Section with Overlapping Card -->
+        <div class="relative pb-32">
+            <div class="h-64 sm:h-80 lg:h-96 w-full bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1920&q=80');"></div>
+            <div class="absolute inset-x-0 bottom-0 transform translate-y-1/2">
+                <div class="max-w-2xl mx-auto">
+                    <div class="bg-white text-center shadow-lg p-6 sm:p-8">
+                        <h2 class="text-xl sm:text-2xl text-red-600 font-semibold mb-2">FARMERSREWARD</h2>
+                        <h3 class="text-xl sm:text-2xl md:text-3xl font-semibold">How FarmersReward delivers the Data-driven future</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3-Column Grid Section -->
+        <div class="mt-32 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="text-center text-white p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white/40 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p>Know the production output of a farmer while supporting it</p>
+            </div>
+            <div class="text-center text-white p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white/40 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                <p>Know the production output of a farmer per season</p>
+            </div>
+            <div class="text-center text-white p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white/40 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <p>Optimise targeted program to maximise impact profitability</p>
+            </div>
+            <div class="text-center text-white p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white/40 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p>Know the contribution of a farmer to the local economy</p>
+            </div>
+            <div class="text-center text-white p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white/40 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                <p>Know the relationship between farmer and Market</p>
+            </div>
+            <div class="text-center text-white p-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-white/40 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <p>Design a data-driven exit strategy</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to action section -->
+<section class="py-20 sm:py-32 bg-gray-100/30">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl sm:text-4xl font-bold mb-4">Delivering the Data Driven Future</h2>
+        <p class="text-lg sm:text-xl mb-8">Want to see a Free Product Demo?</p>
+        <a href="{% url 'contact_form' %}" class="text-white bg-gray-700 font-medium text-lg px-8 py-4 rounded-lg hover:bg-gray-800 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
+            REQUEST DEMO
+        </a>
+    </div>
+</section>
 
 {% endblock %}
