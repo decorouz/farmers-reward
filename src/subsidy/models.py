@@ -293,7 +293,7 @@ class SubsidizedItem(TimeStampModel):
 
 class SubsidyInstance(models.Model):
     farmer = models.ForeignKey(
-        Farmer, related_name="subsidy_instances", on_delete=models.DO_NOTHING
+        Farmer, related_name="subsidy_instances", on_delete=models.CASCADE
     )
     subsidy_program = models.ForeignKey(
         SubsidyProgram,
