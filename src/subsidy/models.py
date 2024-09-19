@@ -207,7 +207,7 @@ class Program(BaseModel):
     def clean(self) -> None:
         super().clean()
         if self.start_date and self.end_date:
-            if self.start_date >= self.end_date:
+            if self.start_date > self.end_date:
                 raise ValidationError("End date can not be before start date")
 
     # def update_active_status(self):
