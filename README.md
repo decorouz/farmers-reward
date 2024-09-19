@@ -1,14 +1,23 @@
+
+# Motivation 
+Agricultural subsidy programs are a common policy tool used by governments to support farmers and promote food security. These programs are designed to increase the income of farmers, reduce the cost of food for consumers, and promote the production of certain crops. However, the effectiveness of agricultural subsidy programs is often limited by the challenge of targeting the right farmers.
+
+Central to the identification of eligible farmers for agricultural subsidies is the issue of asymmetric information. While targeted subsidy programs are designed to reach only those who meet certain eligibility criteria, it is rarely, if ever, possible for central administrators to know precisely who meets the criteria at the local level.
+
 # Farmers Reward
-An application that reward farmers for participating at a local market near them.
+A platform the uses the decentrilized targeting approach to measure the impact of every dollar spent on food security based on farmers local market  and input transactions. 
+
+![image info](./.docs/assets/Baronial_Process.png)
 
 
 ## Features
 - Farmers Market Directory
 - Major Product Price Aggregation and Monitoring.
-- Local Farmers Directory and their market characteristics
-- Local Cultivated Field Directory Plus Soil information
-- Point based Subsidy management system (Implementation and Impact Measurement)
-- Farmers Stories
+- Cultivated field directory by geo location plus soil information
+- Clustering Algoirthm for Farmers Market
+- Clustering Algoirthm for Cultivated Field
+- Clustering Algoirthm for Farmers by Geo Location, Market, Farming Practices and others
+- Farmers Reward System
 
 ## Tech Stack
 - [Python 3.10](https://www.python.org/downloads/) or newer
@@ -18,4 +27,3 @@ An application that reward farmers for participating at a local market near them
 - [Git](https://git-scm.com/)
 
 
-## Getting Started
