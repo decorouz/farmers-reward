@@ -129,7 +129,7 @@ class MechanizationOperation(TimeStampModel):
         ]
 
     def __str__(self):
-        return f"{self.get_operation_type_display()}-per-{self.unit}"  # type: ignore
+        return f"{self.get_operation_type_display()}"  # type: ignore
 
 
 class Agrochemical(TimeStampModel):
