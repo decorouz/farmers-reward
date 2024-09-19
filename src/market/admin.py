@@ -76,7 +76,7 @@ class MarketDayAdmin(ModelAdmin):
     inlines = [ProductPriceInline]
 
 
-@admin.register(ProductPrice)
-class ProductPriceAdmin(ModelAdmin):
-    list_display = ("product", "market_day", "price")
-    list_select_related = ("product", "market_day")
+# @admin.register(ProductPrice)
+# class ProductPriceAdmin(ModelAdmin):
+#     list_display = ("product", "market_day", "price")
+#     list_select_related = ("product", "market_day")

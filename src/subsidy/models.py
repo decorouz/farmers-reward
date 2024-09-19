@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from cities_light.models import Country, Region
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
@@ -29,7 +31,7 @@ class Fertilizer(TimeStampModel):
         POTASH = "MOP", "Muriate of Potash"
         OTHER = "OTHER", "Others"
 
-    manufacturer = models.CharField(max_length=100, unique=True)
+    manufacturer = models.CharField(max_length=100)
     fertilizer_type = models.CharField(
         max_length=5,
         choices=FertilizerChoice.choices,
@@ -42,14 +44,14 @@ class Fertilizer(TimeStampModel):
             RegexValidator(r"^\d+:\d+:\d+$", "Invalid fertilizer blend format")
         ],
     )
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="50kg")
-    price = models.DecimalField(max_digits=8, decimal_places=2)
+    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="50kg")
+    # price = models.DecimalField(max_digits=8, decimal_places=2)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                name="unique_fertilizer",
                 fields=["manufacturer", "fertilizer_type", "fertilizer_blend"],
+                name="unique_fertilizer",
                 condition=Q(manufacturer__iexact=Lower("manufacturer")),
             )
         ]
@@ -82,8 +84,8 @@ class Seed(TimeStampModel):
         default=CropChoice.MAIZE,
     )
     seed_variety = models.CharField(max_length=255, null=True, blank=True)
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="kg")
-    price = models.DecimalField(max_digits=7, decimal_places=2)
+    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="kg")
+    # price = models.DecimalField(max_digits=7, decimal_places=2)
     gmo = models.BooleanField(default=False)
 
     class Meta:
@@ -112,8 +114,8 @@ class MechanizationOperation(TimeStampModel):
         ("IRRIGATING", "Irrigating"),
         ("OTHER", "Other"),
     ]
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="ha")
-    price = models.DecimalField(max_digits=7, decimal_places=2)
+    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="ha")
+    # price = models.DecimalField(max_digits=7, decimal_places=2)
     operation_type = models.CharField(
         max_length=20, choices=OPERATION_TYPES, default="PLOWING"
     )
@@ -138,8 +140,9 @@ class Agrochemical(TimeStampModel):
         INSECTICIDE = "INT", "Insecticide"
 
     manufacturer = models.CharField(max_length=255, unique=True)
-    unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="ltr")
-    price = models.DecimalField(max_digits=7, decimal_places=2)
+    name = models.CharField(max_length=255, unique=True)
+    # unit = models.CharField(max_length=20, choices=UNIT_CHOICES, default="ltr")
+    # price = models.DecimalField(max_digits=7, decimal_places=2)
     agrochemical_type = models.CharField(
         max_length=3,
         choices=AgrochemicalChoice.choices,
@@ -152,13 +155,13 @@ class Agrochemical(TimeStampModel):
                 condition=Q(
                     manufacturer__iexact=Lower("manufacturer"),
                 ),
-                fields=["manufacturer", "agrochemical_type"],
+                fields=["manufacturer", "name", "agrochemical_type"],
                 name="unique_agrochemical_manufacturer_type",
             )
         ]
 
     def __str__(self):
-        return f"{self.manufacturer}({self.agrochemical_type})"
+        return f"{self.manufacturer}({self.name})"
 
 
 class Program(BaseModel):
@@ -172,17 +175,19 @@ class Program(BaseModel):
     level = models.CharField(
         max_length=10, choices=ProgramLevel.choices, default=ProgramLevel.NATIONAL
     )
-    target_num_of_beneficiaries = models.SmallIntegerField(
-        default=200, validators=[MinValueValidator(1)]
-    )
-    current_num_of_beneficiaries = models.SmallIntegerField(default=0)
+    current_num_of_beneficiaries = models.SmallIntegerField(default=0, editable=False)
+
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     state = models.ForeignKey(Region, on_delete=models.CASCADE)
     budget_in_naira = models.DecimalField(
-        max_digits=40, decimal_places=2, blank=True, null=True
+        default=Decimal("7000000000.00"),
+        max_digits=40,
+        decimal_places=2,
+        blank=True,
+        null=True,
     )
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(auto_now_add=True)
+    end_date = models.DateField(blank=False, null=False)
     is_active = models.BooleanField(default=True)
     slug = models.SlugField(unique=True, max_length=255, blank=True, null=True)
 
@@ -204,11 +209,10 @@ class Program(BaseModel):
         if self.start_date and self.end_date:
             if self.start_date >= self.end_date:
                 raise ValidationError("End date can not be before start date")
-        self.update_active_status()
 
-    def update_active_status(self):
-        current_date = timezone.now().date()
-        self.is_active = self.end_date > current_date
+    # def update_active_status(self):
+    #     current_date = timezone.now().date()
+    #     self.is_active = self.end_date > current_date
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -229,104 +233,117 @@ class SubsidyProgram(Program):
 
 
 class SubsidizedItem(TimeStampModel):
-    class ItemType(models.TextChoices):
-        SEED = "SEED", "Seed"
-        FERTILIZER = "FERTILIZER", "Fertilizer"
-        MECHANIZATION = "MECHANIZATION", "Mechanization"
-        CHEMICAL = "AGROCHEMICAL", "Chemical"
+    ITEM_TYPES = [
+        ("FERTILIZER", "Fertilizer"),
+        ("SEED", "Seed"),
+        ("AGROCHEMICAL", "Agrochemical"),
+        ("MECHANIZATION", "Mechanization"),
+    ]
 
-    type = models.CharField(choices=ItemType.choices, max_length=50)
-    seed = models.OneToOneField(Seed, null=True, blank=True, on_delete=models.CASCADE)
-    fertilizer = models.OneToOneField(
-        Fertilizer, null=True, blank=True, on_delete=models.CASCADE
+    item_type = models.CharField(max_length=20, choices=ITEM_TYPES)
+    item_name = models.CharField(max_length=255)
+    item_price = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]
     )
-    mechanization = models.OneToOneField(
-        MechanizationOperation, null=True, blank=True, on_delete=models.CASCADE
+    unit = models.CharField(max_length=20, choices=UNIT_CHOICES)
+
+    # Foreign Key relationships
+    fertilizer = models.ForeignKey(
+        Fertilizer, on_delete=models.SET_NULL, null=True, blank=True
     )
-    chemical = models.OneToOneField(
-        Agrochemical, null=True, blank=True, on_delete=models.CASCADE
+    seed = models.ForeignKey(Seed, on_delete=models.SET_NULL, null=True, blank=True)
+    agrochemical = models.ForeignKey(
+        Agrochemical, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    mechanization_operation = models.ForeignKey(
+        MechanizationOperation, on_delete=models.SET_NULL, null=True, blank=True
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["seed", "fertilizer", "mechanization", "chemical"],
-                name="unique_subsidized_item",
+                fields=["item_type", "item_name"], name="unique_subsidized_item"
             )
         ]
 
     def __str__(self):
-        return f"{self.get_item()}"
+        return f"{self.get_item_type_display()} - {self.item_name}"
 
-    def get_item(self):
-        if self.type == self.ItemType.SEED:
-            return self.seed
-        elif self.type == self.ItemType.FERTILIZER:
-            return self.fertilizer
-        elif self.type == self.ItemType.MECHANIZATION:
-            return self.mechanization
-        elif self.type == self.ItemType.CHEMICAL:
-            return self.chemical
-        return None
+    def clean(self):
+        super().clean()
+        if self.item_type == "FERTILIZER" and not self.fertilizer:
+            raise ValidationError(
+                "Fertilizer must be specified for fertilizer item type."
+            )
+        elif self.item_type == "SEED" and not self.seed:
+            raise ValidationError("Seed must be specified for seed item type.")
+        elif self.item_type == "AGROCHEMICAL" and not self.agrochemical:
+            raise ValidationError(
+                "Agrochemical must be specified for agrochemical item type."
+            )
+        elif self.item_type == "MECHANIZATION" and not self.mechanization_operation:
+            raise ValidationError(
+                "Mechanization operation must be specified for mechanization item type."
+            )
 
-    @property
-    def item_unit(self):
-        item = self.get_item()
-        return item.unit if item else ""
-
-    @property
-    def item_price(self):
-        item = self.get_item()
-        return item.price if item else 0
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class SubsidyInstance(models.Model):
-    # class CropType(models.TextChoices):
-    #     MAIZE = "MAIZE", "Maize"
-    #     RICE = "RICE", "Rice"
-    #     SOYBEAN = "SOYA", "Soybean"
-    #     YAM = "YAM", "YAM"
-    #     CASSAVA = "CASSAVA", "Cassava"
-    #     CASHCROPS = "CASHCROPS", "Ginger, Cocoa, ..."
-
     farmer = models.ForeignKey(
-        Farmer, related_name="subsidy_instance", on_delete=models.DO_NOTHING
-    )
-    item = models.ForeignKey(
-        SubsidizedItem,
-        related_name="subsidy_instance",
-        on_delete=models.CASCADE,
+        Farmer, related_name="subsidy_instances", on_delete=models.DO_NOTHING
     )
     subsidy_program = models.ForeignKey(
         SubsidyProgram,
-        related_name="subsidy_instance",
+        related_name="subsidy_instances",
         on_delete=models.CASCADE,
     )
-    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
     redemption_date = models.DateField(auto_now_add=True)
     redemption_location = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["farmer", "item", "subsidy_program"],
+                fields=["farmer", "subsidy_program"],
                 name="unique_farmer_subsidy",
             )
         ]
 
     def __str__(self):
-        return f"{self.id} - {self.item}"  # type: ignore
-
-    @cached_property
-    def item_unit(self):
-        return self.item.item_unit
+        return f"Subsidy for {self.farmer} under {self.subsidy_program}"
 
     def clean(self):
         validators.validate_farmer_eligibility(self.farmer, self.subsidy_program)
 
-    @cached_property
+    @property
     def subsidized_value(self):
-        """Compute the value of subsidy based on the subsidy rate"""
+        """Compute the total subsidized value for all items in this instance"""
+        return sum(item.subsidized_value for item in self.subsidy_instance_items.all())
+
+
+class SubsidyInstanceItem(models.Model):
+    subsidy_instance = models.ForeignKey(
+        SubsidyInstance, related_name="subsidy_instance_items", on_delete=models.CASCADE
+    )
+    subsidized_item = models.ForeignKey(
+        SubsidizedItem, related_name="subsidy_instance_items", on_delete=models.CASCADE
+    )
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+
+    class Meta:
+        unique_together = ("subsidy_instance", "subsidized_item")
+
+    def __str__(self):
         return (
-            self.item.item_price * self.quantity * (1 - self.subsidy_program.rate / 100)
+            f"{self.subsidized_item} (Qty: {self.quantity}) for {self.subsidy_instance}"
+        )
+
+    @property
+    def subsidized_value(self):
+        """Compute the subsidized value for this specific item"""
+        subsidy_rate = self.subsidy_instance.subsidy_program.rate
+        return (
+            self.subsidized_item.item_price * self.quantity * (1 - subsidy_rate / 100)
         )
