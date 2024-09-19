@@ -27,17 +27,3 @@ class SubsidyInstanceQuerySet(models.QuerySet):
             )["total_per_farmer"]
             or 0
         )
-
-
-class InputPriceHistoryQuerySet(models.QuerySet):
-
-    def get_latest_price(self, item_id):
-        return self.filter(item_id=item_id).order_by("-created_on").first()
-
-    def get_average_price_of_item_per_year(self, item_id, year):
-        return (
-            self.filter(item_id=item_id, created_on__year=year).aggregate(
-                avg_price=models.Avg("price")
-            )["avg_price"]
-            or 0
-        )

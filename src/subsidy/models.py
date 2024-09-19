@@ -281,13 +281,13 @@ class SubsidizedItem(TimeStampModel):
 
 
 class SubsidyInstance(models.Model):
-    class CropType(models.TextChoices):
-        MAIZE = "MAIZE", "Maize"
-        RICE = "RICE", "Rice"
-        SOYBEAN = "SOYA", "Soybean"
-        YAM = "YAM", "YAM"
-        CASSAVA = "CASSAVA", "Cassava"
-        CASHCROPS = "CASHCROPS", "Ginger, Cocoa, ..."
+    # class CropType(models.TextChoices):
+    #     MAIZE = "MAIZE", "Maize"
+    #     RICE = "RICE", "Rice"
+    #     SOYBEAN = "SOYA", "Soybean"
+    #     YAM = "YAM", "YAM"
+    #     CASSAVA = "CASSAVA", "Cassava"
+    #     CASHCROPS = "CASHCROPS", "Ginger, Cocoa, ..."
 
     farmer = models.ForeignKey(
         Farmer, related_name="subsidy_instance", on_delete=models.DO_NOTHING
