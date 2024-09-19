@@ -7,7 +7,7 @@ Central to the identification of eligible farmers for agricultural subsidies is 
 # Farmers Reward
 A platform the uses the decentrilized targeting approach to measure the impact of every dollar spent on food security based on farmers local market  and input transactions. 
 
-![image info](./.docs/assets/Baronial_Process.png)
+![image info](./assets/Baronial_Process.png)
 
 
 ## Features
