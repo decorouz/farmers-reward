@@ -10,6 +10,6 @@ from core.models import User
 # admin.site.unregister(User)
 
 
-@admin.register(User)
-class UserAdmin(BaseUserAdmin, ModelAdmin):
-    pass
+# @admin.register(User)
+# class UserAdmin(BaseUserAdmin, ModelAdmin):
+#     pass

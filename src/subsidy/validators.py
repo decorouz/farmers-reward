@@ -24,3 +24,8 @@ def validate_farmer_eligibility(farmer, subsidy_program) -> None:
     # Check if the farmer is blacklisted
     if farmer.blacklisted:
         raise ValidationError("Farmer is blacklisted and not eligible for this program")
+    # Check if farmer is verified
+    if not farmer.is_verified:
+        raise ValidationError(
+            "Farmer is not verified and not eligible for this program"
+        )

@@ -7,7 +7,9 @@ from django.core.validators import MinValueValidator
 
 # from django.contrib.gis.db import models as gis_models
 from django.db import models
+from django.forms import ValidationError
 from django.urls import reverse
+from django.utils import timezone
 
 from core.models import BaseModel, TimeStampModel
 from market.models import Market, Product
@@ -19,16 +21,16 @@ from .managers import FarmersMarketTransactionQuerySet
 class AgroVendor(BaseModel):
     name = models.CharField(max_length=100)
     addressof_business = models.CharField(max_length=255)
-    state = models.CharField(max_length=100)
-    lga = models.CharField(max_length=100)
-    contact_person = models.CharField(max_length=100)
-    contact_phone = models.CharField(max_length=15)
-    email = models.EmailField()
+    # state = models.CharField(max_length=100)
+    # lga = models.CharField(max_length=100)
+    # contact_person = models.CharField(max_length=100)
+    # email = models.EmailField()
     verification_status = models.BooleanField(default=False)
+    unique_id = models.CharField(max_length=10, unique=True)  # To be replaced with uuid
     # When is vendor considered verified?
 
     def __str__(self) -> str:
-        return f"{self.name}"
+        return f"{self.unique_id}-{self.name}"
 
 
 class PersonalInfo(BaseModel):
@@ -93,7 +95,7 @@ class PersonalInfo(BaseModel):
         blank=True,
         null=True,
     )
-    verification_date = models.DateField(auto_now_add=True)
+    # verification_date = models.DateField(auto_now_add=True)
 
     class Meta:
         abstract = True
@@ -196,11 +198,11 @@ class Farmer(PersonalInfo):
     def __str__(self):
         return f"{self.first_name}, {self.last_name}"
 
-    @admin.display(boolean=True, description="Purchased Input and Sold Produce")
-    def is_confirmed_farmer(self):
-        has_earned_mkt_transaction_pts = self.transactions.exists()
-        has_input_purchase_pts = self.input_purchases.exists()
-        return has_earned_mkt_transaction_pts and has_input_purchase_pts
+    @property
+    def is_verified(self):
+        has_valid_mkt_transaction = self.transactions.exists()
+        has_valid_input_purchase = self.input_purchases.exists()
+        return has_valid_mkt_transaction and has_valid_input_purchase
 
     @admin.display(description="Total Points")
     def total_points(self):
@@ -223,14 +225,14 @@ class FarmersMarketTransaction(TimeStampModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     farmer = models.ForeignKey(
-        Farmer, on_delete=models.RESTRICT, related_name="transactions"
+        Farmer, on_delete=models.CASCADE, related_name="transactions"
     )
     market = models.ForeignKey(
-        Market, on_delete=models.RESTRICT, related_name="transactions"
+        Market, on_delete=models.CASCADE, related_name="transactions"
     )
     produce = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveSmallIntegerField()
-    transaction_date = models.DateField(auto_now_add=True)
+    transaction_date = models.DateField()
     points_earned = models.IntegerField(
         validators=[MinValueValidator(0)], editable=False
     )
@@ -241,12 +243,16 @@ class FarmersMarketTransaction(TimeStampModel):
             models.UniqueConstraint(
                 fields=["produce", "farmer", "market", "transaction_date"],
                 name="unique_mkt_transaction",
-                violation_error_message="Transaction already exist",
             )
         ]
 
     def __str__(self):
         return f"{self.id}"
+
+    def clean(self):
+        super().clean()
+        if self.transaction_date and self.transaction_date != timezone.now().date():
+            raise ValidationError("Transaction Data must be curent date")
 
     def calculate_earned_points(self):
         """Calculate the points earned by the quantity"""
@@ -262,11 +268,13 @@ class FarmersInputTransaction(TimeStampModel):
         Farmer, on_delete=models.CASCADE, related_name="input_purchases"
     )
     vendor = models.ForeignKey(
-        AgroVendor, on_delete=models.CASCADE, related_name="input_purchases"
+        AgroVendor,
+        on_delete=models.CASCADE,
+        related_name="input_purchases",
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    receipt_number = models.CharField(max_length=255)
-    receipt_redemption_date = models.DateField(auto_now_add=True)
+    receipt_number = models.CharField(max_length=255, unique=True)
+    receipt_redemption_date = models.DateField()
     receipt_identifier = models.CharField(max_length=255, editable=False, blank=True)
     points_earned = models.IntegerField(
         validators=[MinValueValidator(0)], editable=False
@@ -275,11 +283,18 @@ class FarmersInputTransaction(TimeStampModel):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["receipt_number", "vendor"],
+                fields=["receipt_number", "farmer", "receipt_redemption_date"],
                 name="unique_receipt_identifier",
-                violation_error_message="Receipt already exist",
             )
         ]
+
+    def clean(self):
+        super().clean()
+        if (
+            self.receipt_redemption_date
+            and self.receipt_redemption_date != timezone.now().date()
+        ):
+            raise ValidationError("Transaction Data must be curent date")
 
     def calculate_earned_points(self):
         """Calculate the points earned by the purchase amount"""
@@ -287,7 +302,10 @@ class FarmersInputTransaction(TimeStampModel):
 
     def save(self, *args, **kwargs):
         # generate a unique identifier for the receipt
-        self.receipt_identifier = f"{self.vendor.unique_id}-{self.receipt_number}"
+        if self.vendor:
+            self.receipt_identifier = f"{self.vendor.unique_id}-{self.receipt_number}"
+        else:
+            self.receipt_identifier = f"unknown_vendor-{self.receipt_number}"
         self.points_earned = self.calculate_earned_points()
         super().save(*args, **kwargs)
 
