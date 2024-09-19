@@ -4,7 +4,6 @@ from datetime import date
 from cities_light.models import Country, Region, SubRegion
 from django.contrib import admin
 from django.core.validators import MinValueValidator
-
 # from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.forms import ValidationError
@@ -273,7 +272,7 @@ class FarmersInputTransaction(TimeStampModel):
         related_name="input_purchases",
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    receipt_number = models.CharField(max_length=255, unique=True)
+    receipt_number = models.CharField(max_length=255, unique=True, default="000000")
     receipt_redemption_date = models.DateField()
     receipt_identifier = models.CharField(max_length=255, editable=False, blank=True)
     points_earned = models.IntegerField(
@@ -350,11 +349,11 @@ class CultivatedField(TimeStampModel):
 #     pass
 
 
-class Crop(Product):
+class Crop(TimeStampModel):
     variety = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.name}-{self.variety}"
+        return f"{self.variety}"
 
 
 class CultivatedFieldHistory(TimeStampModel):
