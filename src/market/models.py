@@ -14,10 +14,10 @@ from .validators import validate_file_size
 
 
 class Address(models.Model):
-    display_address = models.CharField(max_length=255, null=True, blank=True)
+    street_address = models.CharField(max_length=255, null=True, blank=True)
     town = models.CharField(max_length=255, blank=True, null=True)
-    state = models.ForeignKey(Region, on_delete=models.CASCADE)
     local_govt = models.ForeignKey(SubRegion, on_delete=models.CASCADE)
+    state = models.ForeignKey(Region, on_delete=models.CASCADE)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
     latitude = models.FloatField(max_length=9, blank=True, null=True)
     longitude = models.FloatField(max_length=9, blank=True, null=True)
@@ -30,7 +30,6 @@ class Address(models.Model):
                 name="unique_latitude_longitude",
             ),
         ]
-
 
 
 class ContactPerson(BaseModel):  # replace`BaseModel` with Address
@@ -91,7 +90,7 @@ class Market(Address):
         if self.reference_mkt_date and self.reference_mkt_date > timezone.now().date():
             raise ValidationError("Start date cannot be in the future.")
 
-    @cached_property
+    @property
     def previous_market_day(self):
         today = timezone.now().date()
 
