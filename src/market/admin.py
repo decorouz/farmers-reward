@@ -1,16 +1,47 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 
-from market.models import ContactPerson, Market, MarketDay, Product, ProductPrice
+from market.models import (
+    ContactPerson,
+    Market,
+    MarketDay,
+    MarketPaymentMethod,
+    Produce,
+    ProducePrice,
+)
 
 # Register your models here.
 
 
-@admin.register(Product)
+@admin.register(Produce)
 class ProductAdmin(ModelAdmin):
     list_display = ("name", "local_name", "unit")
     search_fields = ("name",)
     prepopulated_fields = {"slug": ("name", "local_name")}
+
+
+class IsMarketDayFilter(admin.SimpleListFilter):
+    title = "Is Market Day"  # Filter label in the admin panel
+    parameter_name = "is_market_day"  # Query parameter name
+
+    def lookups(self, request, model_admin):
+        """
+        Defines the filter options that will appear in the admin panel filter
+        """
+        return (
+            ("yes", "Yes"),
+            ("no", "No"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(
+                id__in=[market.id for market in queryset if market.is_market_day]
+            )
+        if self.value() == "no":
+            return queryset.filter(
+                id__in=[market.id for market in queryset if not market.is_market_day]
+            )
 
 
 @admin.register(Market)
@@ -19,9 +50,9 @@ class MarketAdmin(ModelAdmin):
         "name",
         "custom_region",
         "custom_subregion",
-        "reference_mkt_date",
-        "frequency",
-        "next_marketdate",
+        "last_market_day",
+        "market_frequency",
+        "next_market_day",
         "is_market_day",
         "number_of_vendors",
         "contact_person",
@@ -29,7 +60,9 @@ class MarketAdmin(ModelAdmin):
     )
     autocomplete_fields = ("state", "local_govt")
     prepopulated_fields = {"slug": ("name", "state", "local_govt")}
+    readonly_fields = ("next_market_day", "is_market_day")
     search_fields = ("name__istartswith",)
+    list_filter = (IsMarketDayFilter,)
 
     def custom_region(self, market: Market):
         if market.state:
@@ -40,15 +73,6 @@ class MarketAdmin(ModelAdmin):
         if market.local_govt:
             return f"{str(market.local_govt).split(',')[0]}"
         return market.local_govt
-
-    def next_marketdate(self, market):
-        from datetime import date, timedelta
-
-        if market.reference_mkt_date and market.frequency:
-            while market.reference_mkt_date <= date.today():
-                market.reference_mkt_date += timedelta(days=market.frequency)
-            return market.reference_mkt_date
-        return None
 
 
 @admin.register(ContactPerson)
@@ -62,21 +86,30 @@ class ContactPersonAdmin(ModelAdmin):
     list_filter = ("role",)
 
 
-class ProductPriceInline(TabularInline):
-    model = ProductPrice
+class ProducePriceInline(TabularInline):
+    model = ProducePrice
     extra = 1
 
 
 @admin.register(MarketDay)
 class MarketDayAdmin(ModelAdmin):
-    list_display = ("market", "mkt_date")
+    list_display = ("market", "date")
     list_select_related = ("market",)
-    list_filter = ("mkt_date",)
+    list_filter = ("date",)
 
-    inlines = [ProductPriceInline]
+    inlines = [ProducePriceInline]
 
 
-# @admin.register(ProductPrice)
-# class ProductPriceAdmin(ModelAdmin):
-#     list_display = ("product", "market_day", "price")
-#     list_select_related = ("product", "market_day")
+@admin.register(ProducePrice)
+class ProductPriceAdmin(ModelAdmin):
+    list_display = ("produce", "market_day", "price")
+    list_select_related = ("produce", "market_day")
+    list_filter = ("produce", "market_day")
+
+
+@admin.register(MarketPaymentMethod)
+class MarketPaymentMethodAdmin(ModelAdmin):
+    list_display = ("market", "payment_method", "description")
+    list_filter = ("payment_method",)
+    list_select_related = ("market",)
+    autocomplete_fields = ("market",)

@@ -1,16 +1,67 @@
-from datetime import timedelta
-from functools import cached_property
+from datetime import date, timedelta
 
 from cities_light.models import Country, Region, SubRegion
 from django.contrib import admin
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
 
 from core.models import BaseModel, TimeStampModel
 
-from .validators import validate_file_size
+
+class Produce(TimeStampModel):
+    class UnitChoices(models.IntegerChoices):
+        KG = 1, "100 Kg Sack"
+        BASKET = 2, "50 Kg Basket"
+        SACK = 3, "50 Kg Sack"
+        BAG = 4, "25 Kg Sack"
+
+    class ProduceChoices(models.TextChoices):
+        WHEAT = "WHEAT", "Wheat"
+        MILLET = "MILLET", "Millet"
+        GINGER = "GINGER", "Ginger"
+        PADDY_RICE = "PADDY RICE", "Paddy Rice"
+        BROWN_COWPEA = "BROWN_COWPEA", "Brown Cowpea"
+        WHITE_COWPEA = "WHITE COWPEA", "White Cowpea"
+        WHITE_MAIZE = "WHITE MAIZE", "White Maize"
+        YELLOW_MAIZE = "YELLOW MAIZE", "Yellow Maize"
+        WHITE_SORGHUM = "WHITE SORGHUM", "White Sorghum"
+        YELLOW_SORGHUM = "YELLOW_SORGHUM", "Yellow Sorghum"
+        SESAME = "SESAME", "Sesame"
+        GROUNDNUT = "GROUNDNUT", "Groundnut"
+        SOYBEAN = "SOYBEAN", "Soybean"
+        IRISH_POTATO = "IRISH POTATO", "Irish Potatoes"
+        SWEET_POTATO = "SWEET POTATO", "Sweet Potatoes"
+        YAM = "YAM", "Yam"
+        CASSAVA = "CASSAVA", "Cassava"
+        ONION = "ONION", "Onion"
+        OKRA = "OKRA", "Okra"
+        TOMATO = "TOMATO", "Fresh Tomato"
+        PEPPER = "PEPPER", "Fresh Pepper"
+        DRY_TOMATOES = "DRIED TOMATOES", "Dry Tomatoes"
+        DRIED_PEPPER = "DRIED PEPPER", "Dry Pepper"
+        MILLED_RICE = "MILLED RICE", "Milled Rice"
+        GARRI = "GARRI", "Garri"
+
+    name = models.CharField(max_length=50, choices=ProduceChoices.choices, unique=True)
+    slug = models.SlugField(unique=True)
+    local_name = models.CharField(max_length=50, blank=True, null=True)
+    unit = models.IntegerField(choices=UnitChoices.choices, default=UnitChoices.KG)
+
+    class Meta:
+        verbose_name_plural = "produce"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["name"],
+                name="unique_name",
+            )
+        ]
+
+    def __str__(self):
+        return self.name  # noqa: F401
 
 
 class Address(models.Model):
@@ -59,17 +110,21 @@ class ContactPerson(BaseModel):  # replace`BaseModel` with Address
         return f"{self.first_name} {self.last_name}"
 
 
-# Only admin can create a market
 class Market(Address):
     name = models.CharField(max_length=255, unique=True)
     slug = models.SlugField(unique=True)  # slug
     description = models.TextField(blank=True, null=True)
+    # image = models.ImageField(upload_to="market_images/", blank=True)
     number_of_vendors = models.IntegerField(default=0)
     operating_hours = models.CharField(max_length=50, default="8:00 AM - 5:00 PM")
-    frequency = models.SmallIntegerField(default=4)
-    reference_mkt_date = models.DateField(verbose_name="confirmed market date")
+    market_frequency = models.SmallIntegerField(
+        default=4, validators=[MinValueValidator(1)]
+    )
+    last_market_day = models.DateField(
+        default=timezone.now, verbose_name="Confirmed last market date"
+    )
     contact_person = models.OneToOneField(
-        ContactPerson, on_delete=models.PROTECT, related_name="markets"
+        ContactPerson, on_delete=models.PROTECT, related_name="market"
     )
 
     is_active = models.BooleanField(default=True)
@@ -83,93 +138,45 @@ class Market(Address):
         ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name}-{self.is_market_day}"
 
     def clean(self):
         super().clean()
-        if self.reference_mkt_date and self.reference_mkt_date > timezone.now().date():
+        if self.last_market_day and self.last_market_day > timezone.now().date():
             raise ValidationError("Start date cannot be in the future.")
-
-    @property
-    def previous_market_day(self):
-        today = timezone.now().date()
-
-        days_since_last_market = (today - self.reference_mkt_date).days % self.frequency
-        return today - timedelta(days=days_since_last_market)
-
-    @property
-    def is_market_day(self):
-        today = timezone.now().date()
-        return (today - self.reference_mkt_date).days % self.frequency == 0
 
     @cached_property
     def next_market_day(self):
-        return self.previous_market_day + timedelta(days=self.frequency)
+        today = date.today()
+        days_since_last_market_day = (
+            today - self.last_market_day
+        ).days % self.market_frequency
+        return today + timedelta(
+            days=self.market_frequency - days_since_last_market_day
+        )
+
+    @property
+    def is_market_day(self):
+        today = date.today()
+        days_since_last_market_day = (today - self.last_market_day).days
+
+        return days_since_last_market_day % self.market_frequency == 0
 
     def get_absolute_url(self):
         return reverse("model_detail", kwargs={"slug": self.slug})
 
 
-class Product(TimeStampModel):
-    class UnitChoices(models.IntegerChoices):
-        KG = 1, "100 Kg Sack"
-        BASKET = 2, "50 Kg Basket"
-        SACK = 3, "50 Kg Sack"
-        BAG = 4, "25 Kg Sack"
-
-    class ProductChoices(models.TextChoices):
-        WHEAT = "WHEAT", "Wheat"
-        MILLET = "MILLET", "Millet"
-        GINGER = "GINGER", "Ginger"
-        PADDY_RICE = "PADDY RICE", "Paddy Rice"
-        BROWN_COWPEA = "BROWN_COWPEA", "Brown Cowpea"
-        WHITE_COWPEA = "WHITE COWPEA", "White Cowpea"
-        WHITE_MAIZE = "WHITE MAIZE", "White Maize"
-        YELLOW_MAIZE = "YELLOW MAIZE", "Yellow Maize"
-        WHITE_SORGHUM = "WHITE SORGHUM", "White Sorghum"
-        YELLOW_SORGHUM = "YELLOW_SORGHUM", "Yellow Sorghum"
-        SESAME = "SESAME", "Sesame"
-        GROUNDNUT = "GROUNDNUT", "Groundnut"
-        SOYBEAN = "SOYBEAN", "Soybean"
-        IRISH_POTATO = "IRISH POTATO", "Irish Potatoes"
-        SWEET_POTATO = "SWEET POTATO", "Sweet Potatoes"
-        YAM = "YAM", "Yam"
-        CASSAVA = "CASSAVA", "Cassava"
-        ONION = "ONION", "Onion"
-        OKRA = "OKRA", "Okra"
-        TOMATO = "TOMATO", "Fresh Tomato"
-        PEPPER = "PEPPER", "Fresh Pepper"
-        DRY_TOMATOES = "DRIED TOMATOES", "Dry Tomatoes"
-        DRIED_PEPPER = "DRIED PEPPER", "Dry Pepper"
-        MILLED_RICE = "MILLED RICE", "Milled Rice"
-        GARRI = "GARRI", "Garri"
-
-    name = models.CharField(max_length=50, choices=ProductChoices.choices, unique=True)
-    slug = models.SlugField(unique=True)
-    local_name = models.CharField(max_length=50, blank=True, null=True)
-    unit = models.IntegerField(choices=UnitChoices.choices, default=UnitChoices.KG)
-
-    class Meta:
-        verbose_name_plural = "products"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["name", "local_name"],
-                name="unique_name",
-            )
-        ]
-
-    def __str__(self):
-        return self.name  # noqa: F401
-
-
 class MarketDay(models.Model):
-    market = models.ForeignKey(Market, on_delete=models.CASCADE)
-    mkt_date = models.DateField(auto_now_add=True)
+    market = models.ForeignKey(
+        Market, on_delete=models.CASCADE, related_name="market_day"
+    )
+    events = models.TextField(blank=True)
+    date = models.DateField(auto_now_add=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["market", "mkt_date"],
+                fields=["market", "date"],
                 name="unique_market_day",
             )
         ]
@@ -180,44 +187,49 @@ class MarketDay(models.Model):
             raise ValidationError("MarketDay date must be today.")
 
     def __str__(self):
-        return f"{self.market.name} - {self.mkt_date}"
+        return f"{self.market.name}-{self.date}"
 
 
-class ProductPrice(models.Model):
-    product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="product_price"
+class ProducePrice(models.Model):
+    produce = models.ForeignKey(
+        Produce, on_delete=models.CASCADE, related_name="produce_price"
     )
-    market_day = models.ForeignKey(MarketDay, on_delete=models.CASCADE)
+    market_day = models.ForeignKey(
+        MarketDay, on_delete=models.CASCADE, related_name="produce_price"
+    )
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["product", "market_day"],
-                name="unique_product_price",
+                fields=["produce", "market_day"],
+                name="unique_produce_price",
             )
         ]
 
     # When we save this what do we want to happen?
     def __str__(self):
-        if self.product:
-            return self.product.name
+        if self.produce:
+            return self.produce.name
         return "Deleted Market"
 
 
-class MarketImage(TimeStampModel):
-    """One market can have many images"""
+class PaymentMethod(models.TextChoices):
+    CREDIT_CARD = "CC", "Credit Card"
+    MOBILE_MONEY = "MM", "Mobile Money"
+    BANK_TRANSFER = "BT", "Bank Transfer"
+    POINT_OF_SALE = "POS", "Point of Sale"
+    ATM_ON_SITE = "ATM", "ATM on site"
+    CASH = "CASH", "Cash"
 
-    market = models.ForeignKey(
-        Market,
-        on_delete=models.PROTECT,
-        related_name="market_images",
-        null=True,
-        blank=True,
-    )
-    image = models.ImageField(
-        upload_to="market/images/%Y/%m/%d/",
-        validators=[validate_file_size],
-        blank=True,
-        null=True,
-    )
+
+class MarketPaymentMethod(models.Model):
+    market = models.ForeignKey(Market, on_delete=models.CASCADE)
+    payment_method = models.CharField(max_length=4, choices=PaymentMethod.choices)
+    description = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        unique_together = ("market", "payment_method")
+
+    def __str__(self):
+        return f"{self.market.name} - {self.get_payment_method_display()}"

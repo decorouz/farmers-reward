@@ -4,6 +4,7 @@ from datetime import date
 from cities_light.models import Country, Region, SubRegion
 from django.contrib import admin
 from django.core.validators import MinValueValidator
+
 # from django.contrib.gis.db import models as gis_models
 from django.db import models
 from django.forms import ValidationError
@@ -11,7 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.models import BaseModel, TimeStampModel
-from market.models import Market, Product
+from market.models import Market, Produce
 from market.validators import validate_file_size
 
 from .managers import FarmersMarketTransactionQuerySet
@@ -229,7 +230,7 @@ class FarmersMarketTransaction(TimeStampModel):
     market = models.ForeignKey(
         Market, on_delete=models.CASCADE, related_name="transactions"
     )
-    produce = models.ForeignKey(Product, on_delete=models.PROTECT)
+    produce = models.ForeignKey(Produce, on_delete=models.PROTECT)
     quantity = models.PositiveSmallIntegerField()
     transaction_date = models.DateField()
     points_earned = models.IntegerField(
