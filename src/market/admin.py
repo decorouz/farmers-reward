@@ -1,11 +1,14 @@
+from ast import Add
+
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 
 from market.models import (
+    Address,
     ContactPerson,
     Market,
     MarketDay,
-    MarketPaymentMethod,
+    PaymentMethod,
     Produce,
     ProducePrice,
 )
@@ -13,11 +16,39 @@ from market.models import (
 # Register your models here.
 
 
+@admin.register(Address)
+class AddressAdmin(ModelAdmin):
+    list_display = (
+        "street",
+        "town",
+        "local_govt",
+        "state",
+        "latitude",
+        "longitude",
+    )
+    search_fields = (
+        "local_govt",
+        "state",
+    )
+    autocomplete_fields = ("local_govt", "state", "country")
+    list_filter = ("state", "local_govt")
+    list_select_related = ("state", "local_govt", "country")
+
+    def custom_region(self, address: Address):
+        if address.state:
+            return str(address.state).split(" ")[0]
+        return address.state
+
+    def custom_subregion(self, address: Address):
+        if address.local_govt:
+            return f"{str(address.local_govt).split(',')[0]}"
+        return address.local_govt
+
+
 @admin.register(Produce)
 class ProductAdmin(ModelAdmin):
     list_display = ("name", "local_name", "unit")
     search_fields = ("name",)
-    prepopulated_fields = {"slug": ("name", "local_name")}
 
 
 class IsMarketDayFilter(admin.SimpleListFilter):
@@ -48,8 +79,6 @@ class IsMarketDayFilter(admin.SimpleListFilter):
 class MarketAdmin(ModelAdmin):
     list_display = (
         "name",
-        "custom_region",
-        "custom_subregion",
         "last_market_day",
         "market_frequency",
         "next_market_day",
@@ -58,28 +87,17 @@ class MarketAdmin(ModelAdmin):
         "contact_person",
         "is_active",
     )
-    autocomplete_fields = ("state", "local_govt")
-    prepopulated_fields = {"slug": ("name", "state", "local_govt")}
     readonly_fields = ("next_market_day", "is_market_day")
     search_fields = ("name__istartswith",)
     list_filter = (IsMarketDayFilter,)
-
-    def custom_region(self, market: Market):
-        if market.state:
-            return str(market.state).split(" ")[0]
-        return market.state
-
-    def custom_subregion(self, market: Market):
-        if market.local_govt:
-            return f"{str(market.local_govt).split(',')[0]}"
-        return market.local_govt
+    prepopulated_fields = {"slug": ("name",)}
 
 
 @admin.register(ContactPerson)
 class ContactPersonAdmin(ModelAdmin):
     list_display = (
         "fullname",
-        "phone",
+        "phonenumber",
         "email",
         "role",
     )
@@ -107,9 +125,7 @@ class ProductPriceAdmin(ModelAdmin):
     list_filter = ("produce", "market_day")
 
 
-@admin.register(MarketPaymentMethod)
-class MarketPaymentMethodAdmin(ModelAdmin):
-    list_display = ("market", "payment_method", "description")
-    list_filter = ("payment_method",)
-    list_select_related = ("market",)
-    autocomplete_fields = ("market",)
+@admin.register(PaymentMethod)
+class PaymentMethodAdmin(ModelAdmin):
+    list_display = ("type",)
+    list_filter = ("type",)
