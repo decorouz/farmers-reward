@@ -7,7 +7,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 class TimeStampModel(models.Model):
     created_at = models.DateField(auto_now_add=True)
-    updated_at = models.DateField(auto_now=True)
+    last_update = models.DateField(auto_now=True)
 
     class Meta:
         abstract = True
