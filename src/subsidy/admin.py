@@ -2,66 +2,29 @@ from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 
 from .models import (
-    Agrochemical,
-    Fertilizer,
-    MechanizationOperation,
-    Seed,
-    SubsidizedItem,
+    AgriculturalInput,
+    InputCollection,
+    Subsidy,
+    SubsidyApplication,
+    SubsidyCategory,
+    SubsidyDisbursement,
     SubsidyInstance,
-    SubsidyProgram,
 )
 
 
-@admin.register(Fertilizer)
-class FertilizerAdmin(ModelAdmin):
-    list_display = (
-        "manufacturer",
-        "fertilizer_type",
-        "fertilizer_blend",
-        # "unit",
-        # "price",
-    )
-    list_filter = ("fertilizer_type",)
+class FarmInputCollectionInline(TabularInline):
+    model = AgriculturalInput
+    extra = 1
 
 
-@admin.register(Seed)
-class SeedAdmin(ModelAdmin):
-    list_display = (
-        "seed_company",
-        "crop",
-        "seed_variety",
-        # "unit",
-        # "price",
-        "gmo",
-    )
-    list_filter = ("crop", "gmo")
+@admin.register(InputCollection)
+class CollectionAdmin(ModelAdmin):
+    list_display = ("type",)
+
+    inlines = [FarmInputCollectionInline]
 
 
-@admin.register(MechanizationOperation)
-class MechanizationOperationAdmin(ModelAdmin):
-    list_display = (
-        "operation_type",
-        # "unit",
-        # "price",
-    )
-
-    list_filter = ("operation_type",)
-
-
-@admin.register(Agrochemical)
-class AgrochemicalAdmin(ModelAdmin):
-    list_display = (
-        "manufacturer",
-        "agrochemical_type",
-        "name",
-        # "unit",
-        # "price",
-    )
-
-    list_filter = ("agrochemical_type",)
-
-
-@admin.register(SubsidyProgram)
+@admin.register(Subsidy)
 class SubsidyProgramAdmin(ModelAdmin):
     list_display = (
         "title",
@@ -71,86 +34,54 @@ class SubsidyProgramAdmin(ModelAdmin):
         "country",
         "state",
         "current_num_of_beneficiaries",
-        "is_active",
     )
-    list_filter = (
-        "level",
-        "is_active",
-    )
+    list_filter = ("level",)
     list_select_related = ("state", "country")
     autocomplete_fields = ("state",)
     prepopulated_fields = {"slug": ("title", "state", "program_sponsor")}
 
 
-from .models import SubsidizedItem, SubsidyInstance, SubsidyInstanceItem
+@admin.register(AgriculturalInput)
+class FarmInputAdmin(ModelAdmin):
+    list_display = ("company", "name", "unit_price", "unit")
+    search_fields = ("name",)
+    list_filter = ("company",)
+    list_select_related = ("collection",)
 
 
-class SubsidizedItemAdmin(ModelAdmin):
-    list_display = ("item_name", "item_type", "item_price", "unit")
-    list_filter = ("item_type",)
-    search_fields = ("item_name", "item_type")
+@admin.register(SubsidyApplication)
+class SubsidyApplicationAdmin(ModelAdmin):
+    list_display = ("farmer", "subsidy", "application_date", "approval_status")
+    list_filter = ("approval_status", "subsidy", "application_date")
+    list_select_related = ("farmer", "subsidy")
 
-    fieldsets = (
-        (None, {"fields": ("item_type", "item_name", "item_price", "unit")}),
-        (
-            "Related Items",
-            {
-                "fields": (
-                    "fertilizer",
-                    "seed",
-                    "agrochemical",
-                    "mechanization_operation",
-                ),
-                "classes": ("collapse",),
-            },
-        ),
+
+@admin.register(SubsidyDisbursement)
+class SubsidyDisbursementAdmin(ModelAdmin):
+    list_display = (
+        "application",
+        "disbursement_date",
+        "total_value_items",
+        "subsidized_amount",
     )
-
-    def get_readonly_fields(self, request, obj=None):
-        if obj:  # editing an existing object
-            return ("item_type",)
-        return ()
+    list_filter = ("disbursement_date",)
+    list_select_related = ("application",)
 
 
-class SubsidyInstanceItemInline(TabularInline):
-    model = SubsidyInstanceItem
-    extra = 1
+@admin.register(SubsidyCategory)
+class SubsidyCategoryAdmin(ModelAdmin):
+    list_display = ("name",)
+    list_filter = ("name",)
 
 
+@admin.register(SubsidyInstance)
 class SubsidyInstanceAdmin(ModelAdmin):
     list_display = (
-        "farmer",
-        "subsidy_program",
-        "redemption_date",
-        "redemption_location",
-        "get_total_subsidized_value",
-    )
-    list_filter = ("subsidy_program", "redemption_date")
-    search_fields = ("farmer__name", "subsidy_program__title")
-    inlines = [SubsidyInstanceItemInline]
-
-    def get_total_subsidized_value(self, obj):
-        return f"₦{obj.subsidized_value:.2f}"
-
-    get_total_subsidized_value.short_description = "Total Subsidized Value"
-
-
-class SubsidyInstanceItemAdmin(ModelAdmin):
-    list_display = (
-        "subsidy_instance",
-        "subsidized_item",
+        "id",
+        "subsidy",
+        "category",
         "quantity",
-        "get_subsidized_value",
+        "instance_rate",
     )
-    list_filter = ("subsidy_instance__subsidy_program", "subsidized_item__item_type")
-    search_fields = ("subsidy_instance__farmer__name", "subsidized_item__item_name")
-
-    def get_subsidized_value(self, obj):
-        return f"₦{obj.subsidized_value:.2f}"
-
-    get_subsidized_value.short_description = "Subsidized Value"
-
-
-admin.site.register(SubsidizedItem, SubsidizedItemAdmin)
-admin.site.register(SubsidyInstance, SubsidyInstanceAdmin)
-admin.site.register(SubsidyInstanceItem, SubsidyInstanceItemAdmin)
+    list_filter = ("subsidy", "category")
+    list_select_related = ("subsidy", "category")

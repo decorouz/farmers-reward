@@ -47,8 +47,13 @@ class AddressAdmin(ModelAdmin):
 
 @admin.register(Produce)
 class ProductAdmin(ModelAdmin):
-    list_display = ("name", "local_name", "unit")
-    search_fields = ("name",)
+    list_display = (
+        "name",
+        "local_name",
+        # "category",
+        "unit",
+    )
+    # list_filter = ("category",)
 
 
 class IsMarketDayFilter(admin.SimpleListFilter):
@@ -120,9 +125,17 @@ class MarketDayAdmin(ModelAdmin):
 
 @admin.register(ProducePrice)
 class ProductPriceAdmin(ModelAdmin):
-    list_display = ("produce", "market_day", "price")
+    list_display = (
+        "produce",
+        "produce__category",
+        "market_day",
+        "market_day__market",
+        "price_type",
+        "price",
+        "produce__unit",
+    )
     list_select_related = ("produce", "market_day")
-    list_filter = ("produce", "market_day")
+    list_filter = ("market_day", "price_type")
 
 
 @admin.register(PaymentMethod)

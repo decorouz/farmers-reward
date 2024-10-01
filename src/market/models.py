@@ -33,60 +33,57 @@ class PaymentMethod(models.Model):
 
 
 class Produce(models.Model):
-    class UnitChoices(models.IntegerChoices):
-        SACK = 1, "100 Kg"
-        BASKET = 2, "Basket"
-        BAG = 3, "50 Kg"
 
-    class ProduceChoices(models.TextChoices):
-        WHEAT = "WHEAT", "Wheat"
-        MILLET = "MILLET", "Millet"
-        GINGER = "GINGER", "Ginger"
-        PADDY_RICE = "PADDY RICE", "Paddy Rice"
-        BROWN_COWPEA = "BROWN_COWPEA", "Brown Cowpea"
-        WHITE_COWPEA = "WHITE COWPEA", "White Cowpea"
-        WHITE_MAIZE = "WHITE MAIZE", "White Maize"
-        YELLOW_MAIZE = "YELLOW MAIZE", "Yellow Maize"
-        WHITE_SORGHUM = "WHITE SORGHUM", "White Sorghum"
-        YELLOW_SORGHUM = "YELLOW_SORGHUM", "Yellow Sorghum"
-        SESAME = "SESAME", "Sesame"
-        GROUNDNUT = "GROUNDNUT", "Groundnut"
-        SOYBEAN = "SOYBEAN", "Soybean"
-        IRISH_POTATO = "IRISH POTATO", "Irish Potatoes"
-        SWEET_POTATO = "SWEET POTATO", "Sweet Potatoes"
-        YAM = "YAM", "Yam"
-        CASSAVA = "CASSAVA", "Cassava"
-        ONION = "ONION", "Onion"
-        OKRA = "OKRA", "Okra"
-        TOMATO = "TOMATO", "Fresh Tomato"
-        PEPPER = "PEPPER", "Fresh Pepper"
-        DRY_TOMATOES = "DRIED TOMATOES", "Dry Tomatoes"
-        DRIED_PEPPER = "DRIED PEPPER", "Dry Pepper"
-        MILLED_RICE = "MILLED RICE", "Milled Rice"
-        GARRI = "GARRI", "Garri"
+    UNIT_CHOICES = (
+        ("BAG", "100 KG"),
+        ("50KG", "50 KG"),
+        ("100T", "100 Tubers"),
+        ("25ltr", "25 liters"),
+    )
 
-    name = models.CharField(max_length=50, choices=ProduceChoices.choices, unique=True)
-    slug = models.SlugField(unique=True)
+    class ProduceCategory(models.TextChoices):
+        PULSE_NUT = "PN", "Pulse and Nuts"
+        CEREAL_TUBER = "CT", "Cereals and Tubers"
+        OIL_FAT = "OF", "Oil and Fats"
+        MEAT_FISH_EGG = "MFE", "Meat, Fish and Eggs"
+        MILK = "MD", "Milk and Dairy"
+        VEGETABLE = "VF", "Vegetable and Fruits"
+        NON_FOOD = "NF", "Non Food"
+        MISCELLANEOUS = "MS", "Miscellaneous Food"
+
+    name = models.CharField(max_length=50, unique=True)
+    extra = models.CharField(
+        max_length=50, default="", help_text="eg. brown beans, shelled groudnut"
+    )
     local_name = models.CharField(max_length=50, default="")
-    unit = models.IntegerField(choices=UnitChoices.choices, default=UnitChoices.BAG)
+    category = models.CharField(
+        max_length=3,
+        choices=ProduceCategory.choices,
+        default=ProduceCategory.CEREAL_TUBER,
+    )
+    unit = models.CharField(max_length=5, choices=UNIT_CHOICES, default="BAG")
     last_update = models.DateTimeField(auto_now=True)
+    slug = models.SlugField(unique=True)
 
     class Meta:
-        verbose_name_plural = "produce"
+        verbose_name_plural = "commodities"
         constraints = [
             models.UniqueConstraint(
                 fields=["name"],
-                name="unique_name",
+                name="unique_commodity_name",
             )
         ]
 
     def __str__(self):
-        return self.name  # noqa: F401
+        return self.name_detail  # noqa: F401
+
+    @property
+    def name_detail(self):
+        return f"{self.name}({self.extra})"
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(f"{self.name}{self.local_name}")
-        self.clean()
+            self.slug = slugify(f"{self.name}-{self.extra}-{self.local_name}")
         super().save(*args, **kwargs)
 
 
@@ -155,6 +152,10 @@ class Market(models.Model):
     def __str__(self):
         return f"{self.name}-{self.is_market_day}"
 
+    @property
+    def name_location(self):
+        return
+
     def clean(self):
         super().clean()
         if self.last_market_day and self.last_market_day > timezone.now().date():
@@ -186,7 +187,7 @@ class MarketDay(models.Model):
         Market, on_delete=models.CASCADE, related_name="market_day"
     )
     events = models.TextField(default="Market Event")
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=date.today)
 
     class Meta:
         constraints = [
@@ -202,15 +203,25 @@ class MarketDay(models.Model):
             raise ValidationError("MarketDay date must be today.")
 
     def __str__(self):
-        return f"{self.market.name}-{self.date}"
+        return f"{self.date}"
 
 
 class ProducePrice(models.Model):
+
+    class PriceType(models.TextChoices):
+        WHOLESALE = "W", "Wholesale"
+        RETAIL = "R", "Retail"
+
     produce = models.ForeignKey(
         Produce, on_delete=models.CASCADE, related_name="produce_price"
     )
     market_day = models.ForeignKey(
         MarketDay, on_delete=models.CASCADE, related_name="produce_price"
+    )
+    price_type = models.CharField(
+        max_length=1,
+        choices=PriceType.choices,
+        default=PriceType.WHOLESALE,
     )
     price = models.DecimalField(
         max_digits=10,

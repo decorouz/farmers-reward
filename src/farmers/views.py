@@ -1,6 +1,21 @@
-def update_market_transaction(request, farmer_id, market_id, date_of_transaction):
-    """Update the market transaction for the farmer who sell the same produce at the same market on the same date"""
-    pass
+from django.shortcuts import render
+
+from farmers.models import FarmersInputTransaction, FarmersMarketTransaction
+
+from .filters import TransactionFilter
+
+
+def market_transaction_list(request):
+    transaction_filter = TransactionFilter(
+        request.GET,
+        queryset=FarmersMarketTransaction.objects.all().select_related(
+            "farmer", "market", "produce"
+        ),
+    )
+    context = {
+        "filter": transaction_filter,
+    }
+    return render(request, "farmers/transactions-list.html", context)
 
 
 # Farmers onboarding

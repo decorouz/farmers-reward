@@ -107,8 +107,9 @@ class FarmersInputTransactionAdmin(ModelAdmin):
     list_display = (
         "farmer",
         "vendor",
+        "market",
         "amount",
         "receipt_verification_date",
         "points_earned",
     )
-    list_select_related = ("farmer", "vendor")
+    list_select_related = ("farmer", "vendor", "market")

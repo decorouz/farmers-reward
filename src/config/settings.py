@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "cities_light",
     "admin_honeypot",
+    "django_filters",
     # User defined apps
     "core",
     "market",

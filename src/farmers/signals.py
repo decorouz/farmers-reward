@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from .models import Farmer, FarmersInputTransaction, FarmersMarketTransaction
@@ -29,6 +29,19 @@ def update_farmer_input_transaction_status(sender, instance, created, **kwargs):
                 models.When(has_market_transaction=True, then=True), default=False
             ),
         )
+
+
+@receiver(post_delete, sender=FarmersInputTransaction)
+def update_farmer_has_input_transactions(sender, instance, **kwarg):
+    farmer = instance.farmer
+    has_input_transaction = FarmersInputTransaction.objects.filter(
+        farmer=farmer
+    ).exists()
+    if not has_input_transaction:
+        print("\n Did we ge here")
+        farmer.has_input_transaction = False
+        farmer.is_verified = False
+        farmer.save(update_fields=["has_input_transaction", "is_verified"])
 
     # @admin.display(description="Total Points")
     # def total_points(self):

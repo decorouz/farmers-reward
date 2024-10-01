@@ -163,8 +163,8 @@ class Farmer(PersonalInfo):
         choices=FarmsizeCategory.choices,
         default=FarmsizeCategory.ONE_TO_THREE_HA,
     )
-    has_market_transaction = models.BooleanField(default=False)
-    has_input_transaction = models.BooleanField(default=False)
+    has_market_transaction = models.BooleanField(default=False, editable=False)
+    has_input_transaction = models.BooleanField(default=False, editable=False)
     is_verified = models.BooleanField(default=False, editable=False)
     earned_points = models.IntegerField(
         validators=[MinValueValidator(0)], default=0, editable=False
@@ -238,6 +238,9 @@ class FarmersInputTransaction(models.Model):
     farmer = models.ForeignKey(
         Farmer, on_delete=models.CASCADE, related_name="input_transaction"
     )
+    market = models.ForeignKey(
+        Market, on_delete=models.CASCADE, related_name="input_transaction"
+    )
     vendor = models.ForeignKey(
         AgroVendor,
         on_delete=models.CASCADE,
@@ -262,11 +265,8 @@ class FarmersInputTransaction(models.Model):
 
     def clean(self):
         super().clean()
-        if (
-            self.receipt_verification_date
-            and self.receipt_verification_date != timezone.now().date()
-        ):
-            raise ValidationError("Transaction Data must be curent date")
+        if not self.market.is_market_day:
+            raise ValidationError("Input purchase can only be verified on market days")
 
     def _calculate_earned_points(self):
         """Calculate the points earned by the purchase amount"""
@@ -274,7 +274,6 @@ class FarmersInputTransaction(models.Model):
 
     def save(self, *args, **kwargs):
         self.points_earned = self._calculate_earned_points()
-        self.points_earned += self.points_earned
         super().save(*args, **kwargs)
 
     def __str__(self):

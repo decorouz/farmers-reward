@@ -1,5 +1,5 @@
 import random
-from datetime import timedelta
+from datetime import date, timedelta
 
 from cities_light.models import Country, Region, SubRegion
 from django.core.management.base import BaseCommand
@@ -59,17 +59,40 @@ class Command(BaseCommand):
             # Step 4: Create 5 unique Produce records (no duplicate names)
             produce_items = []
             produce_data = [
-                {"name": Produce.ProduceChoices.WHEAT, "local_name": "Wheat"},
-                {"name": Produce.ProduceChoices.MILLET, "local_name": "Millet"},
-                {"name": Produce.ProduceChoices.GINGER, "local_name": "Ginger"},
-                {"name": Produce.ProduceChoices.PADDY_RICE, "local_name": "Paddy Rice"},
                 {
-                    "name": Produce.ProduceChoices.BROWN_COWPEA,
-                    "local_name": "Brown Cowpea",
+                    "name": "Maize",
+                    "extra": "white",
+                    "category": Produce.ProduceCategory.CEREAL_TUBER,
+                    "local_name": "Masara",
+                    "unit": Produce.UNIT_CHOICES[0][0],
                 },
                 {
-                    "name": Produce.ProduceChoices.WHITE_COWPEA,
-                    "local_name": "White Cowpea",
+                    "name": "Rice",
+                    "extra": "imported",
+                    "category": Produce.ProduceCategory.CEREAL_TUBER,
+                    "local_name": "kafa",
+                    "unit": Produce.UNIT_CHOICES[0][0],
+                },
+                {
+                    "name": "Sorghum",
+                    "extra": "red",
+                    "category": Produce.ProduceCategory.CEREAL_TUBER,
+                    "local_name": "okababa",
+                    "unit": Produce.UNIT_CHOICES[0][0],
+                },
+                {
+                    "name": "Groundnuts",
+                    "extra": "shelled",
+                    "category": Produce.ProduceCategory.PULSE_NUT,
+                    "local_name": "epa",
+                    "unit": Produce.UNIT_CHOICES[0][0],
+                },
+                {
+                    "name": "Cowpeas",
+                    "extra": "brown",
+                    "category": Produce.ProduceCategory.PULSE_NUT,
+                    "local_name": "ewa",
+                    "unit": Produce.UNIT_CHOICES[0][0],
                 },
             ]
 
@@ -80,7 +103,9 @@ class Command(BaseCommand):
                     defaults={
                         "slug": slugify(produce["name"]),
                         "local_name": produce["local_name"],
-                        "unit": Produce.UnitChoices.BAG,  # Default unit for now
+                        "category": produce["category"],
+                        "extra": produce["extra"],
+                        "unit": produce["unit"],
                     },
                 )
 
@@ -118,7 +143,7 @@ class Command(BaseCommand):
                     number_of_vendors=random.randint(50, 200),
                     operating_hours="8:00 AM - 5:00 PM",
                     market_frequency=random.randint(1, 6),
-                    last_market_day=timezone.now()
+                    last_market_day=timezone.now().date()
                     - timedelta(days=random.randint(1, 10)),
                     slug=market_slug,  # Unique slug for each market
                     contact_person=contact_person,
@@ -128,6 +153,26 @@ class Command(BaseCommand):
                 market.payment_methods.set(payment_methods)
                 market.produce_items.set(produce_items)
                 markets.append(market)
+
+            # Step 5: Create 5 different MarketDay records
+            market_days = []
+            for market in markets:
+                if market.is_market_day:
+                    market_day = MarketDay.objects.create(
+                        market=market,
+                        events=f"Market Day events for {market.name}",
+                        date=date.today(),
+                    )
+            market_days.append(market_day)
+
+            # Step 6: Create ProducePrice records for each produce and market day combination
+
+            for i in range(len(market_days)):
+                ProducePrice.objects.create(
+                    produce=produce_items[i],
+                    market_day=market_days[i],
+                    price=random.uniform(1000.00, 5000.00),
+                )
 
             # Step 4: Create 5 different Address records
             addresses = []
@@ -144,26 +189,6 @@ class Command(BaseCommand):
                     market=market,
                 )
                 addresses.append(address)
-
-            # Step 5: Create 5 different MarketDay records
-            market_days = []
-            for market in markets:
-                market_day = MarketDay.objects.create(
-                    market=market,
-                    events=f"Market Day events for {market.name}",
-                    date=timezone.now() - timedelta(days=random.randint(0, 10)),
-                )
-                market_days.append(market_day)
-
-            # Step 6: Create ProducePrice records for each produce and market day combination
-            for i in range(len(markets)):
-                ProducePrice.objects.create(
-                    produce=produce_items[
-                        i % len(produce_items)
-                    ],  # Rotate through produce
-                    market_day=market_days[i],
-                    price=random.uniform(1000.00, 5000.00),
-                )
 
         self.stdout.write(
             self.style.SUCCESS("Successfully populated the database with 5 records.")

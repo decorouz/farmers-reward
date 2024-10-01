@@ -23,9 +23,11 @@ django-cloudinary-storage = "*"
 django-resized = "*"
 django-phonenumber-field = {extras = ["phonenumberslite"], version = "*"}
 pre-commit = "*"
+django-filter = "*"
 
 [dev-packages]
 pip-tools = "*"
+faker = "*"
 
 [requires]
 python_version = "3.11"
