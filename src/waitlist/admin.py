@@ -9,7 +9,7 @@ from .models import Contact
 #     list_display = (
 #         "name",
 #         "email",
-#         "phone",
+#         "phone_number",
 #         "message",
 #         "created_at",
 #     )
