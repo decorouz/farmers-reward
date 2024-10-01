@@ -1,21 +1,21 @@
-from django.shortcuts import render
+# from django.shortcuts import render
 
-from farmers.models import FarmersInputTransaction, FarmersMarketTransaction
+# from farmers.models import FarmersInputTransaction, FarmersMarketTransaction
 
-from .filters import TransactionFilter
+# from .filters import TransactionFilter
 
 
-def market_transaction_list(request):
-    transaction_filter = TransactionFilter(
-        request.GET,
-        queryset=FarmersMarketTransaction.objects.all().select_related(
-            "farmer", "market", "produce"
-        ),
-    )
-    context = {
-        "filter": transaction_filter,
-    }
-    return render(request, "farmers/transactions-list.html", context)
+# def market_transaction_list(request):
+#     transaction_filter = TransactionFilter(
+#         request.GET,
+#         queryset=FarmersMarketTransaction.objects.all().select_related(
+#             "farmer", "market", "produce"
+#         ),
+#     )
+#     context = {
+#         "filter": transaction_filter,
+#     }
+#     return render(request, "farmers/transactions-list.html", context)
 
 
 # Farmers onboarding
