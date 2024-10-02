@@ -6,7 +6,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 class Contact(models.Model):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100)
-    phone_number = PhoneNumberField(unique=True)
+    phone_number = PhoneNumberField(max_length=14, unique=True)
     message = models.TextField(blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
