@@ -21,7 +21,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 if ENVIRONMENT == "development":
     DEBUG = True
 else:
-    DEBUG = False
+    DEBUG = True
 
 
 ALLOWED_HOSTS = [
