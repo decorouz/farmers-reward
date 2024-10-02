@@ -9,7 +9,7 @@ name_class = {
 
 
 class ContactUsForm(forms.ModelForm):
-    phone = PhoneNumberField(
+    phone_number = PhoneNumberField(
         widget=forms.TextInput(
             attrs={
                 "class": name_class["class"],
@@ -21,7 +21,7 @@ class ContactUsForm(forms.ModelForm):
 
     class Meta:
         model = Contact
-        fields = ["name", "email", "phone", "message"]
+        fields = ["name", "email", "phone_number", "message"]
 
         widgets = {
             "name": forms.TextInput(
