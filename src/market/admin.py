@@ -102,7 +102,7 @@ class MarketAdmin(ModelAdmin):
 class ContactPersonAdmin(ModelAdmin):
     list_display = (
         "fullname",
-        "phonenumber",
+        "phone_number",
         "email",
         "role",
     )

@@ -95,7 +95,7 @@ class ContactPerson(models.Model):  # replace`BaseModel` with Address
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     email = models.EmailField(blank=True, null=True)
-    phonenumber = PhoneNumberField(max_length=14, unique=True)
+    phone_number = PhoneNumberField(max_length=14, unique=True)
     role = models.CharField(max_length=255, choices=ROLE, default="MA")
     last_update = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
@@ -103,7 +103,7 @@ class ContactPerson(models.Model):  # replace`BaseModel` with Address
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["phonenumber", "email"],
+                fields=["phone_number", "email"],
                 name="unique_contact_person",
             )
         ]
