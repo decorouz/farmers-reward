@@ -7,7 +7,7 @@ urlpatterns = [
     path("admin/", include("admin_honeypot.urls", namespace="admin_honeypot")),
     path("baronialhq/", admin.site.urls),
     path("", include("core.urls")),
-    path("market", include("market.urls")),
+    path("market/", include("market.urls")),
     path("farmers/", include("farmers.urls")),
     path("subsidy/", include("subsidy.urls")),
     path("contact/", include("waitlist.urls")),
